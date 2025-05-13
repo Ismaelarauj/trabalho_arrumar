@@ -1,0 +1,36 @@
+{
+  "name": "sistema-avaliacao-projetos",
+  "version": "1.0.0",
+  "description": "Sistema de avaliação de projetos com persistência em MySQL",
+  "main": "server/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "node server/index.js",
+    "start:frontend": "cd client && react-scripts start",
+    "build": "cd client && react-scripts build",
+    "install:all": "npm install",
+    "dev:backend": "nodemon server/index.js",
+    "test": "cd client && react-scripts test",
+    "audit:fix": "npm audit fix"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.14.0",
+    "react-scripts": "^5.0.1",
+    "express": "^4.18.2",
+    "sequelize": "^6.32.1",
+    "mysql2": "^3.6.0",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "nodemon": "^3.0.1"
+  },
+  "browserslist": {
+    "production": [">0.2%", "not dead", "not op_mini all"],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+  }
+}

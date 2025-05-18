@@ -1,26 +1,46 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import CrudPremio from './components/CrudPremio.js';
-import CrudAutor from './components/CrudAutor.js';
-import CrudAvaliador from './components/CrudAvaliador.js';
+import CrudUsuario from './components/CrudUsuario.js';
 import EnvioProjeto from './components/EnvioProjeto.js';
 import AvaliacaoProjeto from './components/AvaliacaoProjeto.js';
 import ListaVencedores from './components/ListaVencedores.js';
 import ListaProjetos from './components/ListaProjetos.js';
 import Login from './components/Login.js';
 import { AppBar, Toolbar, Button } from '@mui/material';
+import { jwtDecode } from 'jwt-decode';
 
 const ProtectedRoute = ({ allowedRoles, children }) => {
     const navigate = useNavigate();
-    const userRole = localStorage.getItem('userRole');
+    const token = localStorage.getItem('token');
 
     useEffect(() => {
-        if (!userRole || !allowedRoles.includes(userRole)) {
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+
+        try {
+            const decoded = jwtDecode(token);
+            const currentTime = Date.now() / 1000;
+            if (decoded.exp < currentTime) {
+                alert('Sua sessão expirou. Faça login novamente.');
+                localStorage.removeItem('token');
+                navigate('/login');
+                return;
+            }
+            if (!allowedRoles.includes(decoded.role)) {
+                alert('Você não tem permissão para acessar esta página.');
+                navigate('/'); // Redireciona para login ou página inicial
+            }
+        } catch (error) {
+            alert('Token inválido. Faça login novamente.');
+            localStorage.removeItem('token');
             navigate('/login');
         }
-    }, [userRole, navigate]);
+    }, [token, navigate, allowedRoles]);
 
-    return userRole && allowedRoles.includes(userRole) ? children : null;
+    return token ? children : null;
 };
 
 function App() {
@@ -30,8 +50,7 @@ function App() {
                 <Toolbar>
                     <Button color="inherit" href="/login">Login</Button>
                     <Button color="inherit" href="/premios">Prêmios</Button>
-                    <Button color="inherit" href="/autores">Autores</Button>
-                    <Button color="inherit" href="/avaliadores">Avaliadores</Button>
+                    <Button color="inherit" href="/usuarios">Usuários</Button>
                     <Button color="inherit" href="/projetos/enviar">Enviar Projeto</Button>
                     <Button color="inherit" href="/projetos/avaliar">Avaliar Projeto</Button>
                     <Button color="inherit" href="/projetos">Projetos</Button>
@@ -49,20 +68,16 @@ function App() {
                     }
                 />
                 <Route
-                    path="/autores"
+                    path="/usuarios"
                     element={
-                        <ProtectedRoute allowedRoles={['admin', 'autor']}>
-                            <CrudAutor />
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <CrudUsuario />
                         </ProtectedRoute>
                     }
                 />
                 <Route
-                    path="/avaliadores"
-                    element={
-                        <ProtectedRoute allowedRoles={['admin', 'avaliador']}>
-                            <CrudAvaliador />
-                        </ProtectedRoute>
-                    }
+                    path="/cadastro"
+                    element={<CrudUsuario />}
                 />
                 <Route
                     path="/projetos/enviar"

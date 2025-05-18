@@ -3,11 +3,15 @@ import {
     Container, Typography, Box, TextField, Button, MenuItem, Select, InputLabel, FormControl
 } from '@mui/material';
 import api from '../services/api.js';
+import { jwtDecode } from 'jwt-decode';
 
 const AvaliacaoProjeto = () => {
+    const token = localStorage.getItem('token');
+    const avaliadorId = token ? jwtDecode(token).id : null;
+
     const [formData, setFormData] = useState({
         projetoId: '',
-        avaliadorId: 1, // Simulado para o avaliador logado
+        avaliadorId: avaliadorId || '',
         parecer: '',
         nota: '',
         dataAvaliacao: new Date().toISOString().split('T')[0]
@@ -33,19 +37,34 @@ const AvaliacaoProjeto = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!avaliadorId) {
+            alert('Você precisa estar logado para avaliar um projeto.');
+            return;
+        }
         try {
-            await api.post('/avaliacoes', formData);
+            // Converter os campos para os tipos esperados pelo backend
+            const dataToSend = {
+                projetoId: parseInt(formData.projetoId), // Converter para número
+                avaliadorId: parseInt(formData.avaliadorId), // Converter para número
+                parecer: formData.parecer,
+                nota: parseFloat(formData.nota), // Converter para número
+                dataAvaliacao: formData.dataAvaliacao
+            };
+
+            await api.post('/avaliacoes', dataToSend);
             alert('Avaliação enviada com sucesso!');
             setFormData({
                 projetoId: '',
-                avaliadorId: 1,
+                avaliadorId: avaliadorId || '',
                 parecer: '',
                 nota: '',
                 dataAvaliacao: new Date().toISOString().split('T')[0]
             });
             fetchProjetos();
         } catch (error) {
-            alert('Erro ao enviar avaliação: ' + error.message);
+            // Exibir mensagem de erro detalhada do backend
+            const errorMessage = error.response?.data?.error || error.message;
+            alert('Erro ao enviar avaliação: ' + errorMessage);
         }
     };
 

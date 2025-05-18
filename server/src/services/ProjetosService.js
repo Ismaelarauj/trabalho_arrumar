@@ -1,24 +1,26 @@
-import { Projeto } from '../models/Projeto.js';
-import { Autor } from '../models/Autor.js';
-import { Premio } from '../models/Premio.js';
-
 export class ProjetosService {
+    constructor({ Projeto, Usuario, Premio }) {
+        this.Projeto = Projeto;
+        this.Usuario = Usuario;
+        this.Premio = Premio;
+    }
+
     async getAll() {
-        return await Projeto.findAll({
+        return await this.Projeto.findAll({
             include: [
-                { model: Autor, as: 'Autor' },
-                { model: Premio },
-                { model: Autor, as: 'Coautores' }
+                { model: this.Usuario, as: 'Autor' },
+                { model: this.Premio, as: 'Premio' }, // Adicionado o alias 'Premio' conforme definido no belongsTo
+                { model: this.Usuario, as: 'Coautores', through: { attributes: [] } }
             ]
         });
     }
 
     async getById(id) {
-        const projeto = await Projeto.findByPk(id, {
+        const projeto = await this.Projeto.findByPk(id, {
             include: [
-                { model: Autor, as: 'Autor' },
-                { model: Premio },
-                { model: Autor, as: 'Coautores' }
+                { model: this.Usuario, as: 'Autor' },
+                { model: this.Premio, as: 'Premio' }, // Adicionado o alias 'Premio' conforme definido no belongsTo
+                { model: this.Usuario, as: 'Coautores', through: { attributes: [] } }
             ]
         });
         if (!projeto) throw new Error('Projeto não encontrado');
@@ -29,7 +31,6 @@ export class ProjetosService {
         try {
             const { coautores, ...projetoData } = data;
 
-            // Validações manuais
             if (!projetoData.premioId) throw new Error('O campo prêmio é obrigatório');
             if (!projetoData.autorId) throw new Error('O campo autor é obrigatório');
             if (!projetoData.titulo || projetoData.titulo.trim() === '') throw new Error('O campo título é obrigatório');
@@ -37,26 +38,22 @@ export class ProjetosService {
             if (!projetoData.areaTematica || projetoData.areaTematica.trim() === '') throw new Error('O campo área temática é obrigatório');
             if (!projetoData.dataEnvio || isNaN(new Date(projetoData.dataEnvio).getTime())) throw new Error('O campo data de envio é inválido');
 
-            // Verificar se premioId e autorId existem
-            const premio = await Premio.findByPk(projetoData.premioId);
+            const premio = await this.Premio.findByPk(projetoData.premioId);
             if (!premio) throw new Error('Prêmio não encontrado');
-            const autor = await Autor.findByPk(projetoData.autorId);
-            if (!autor) throw new Error('Autor não encontrado');
+            const autor = await this.Usuario.findByPk(projetoData.autorId);
+            if (!autor || autor.tipo !== 'autor') throw new Error('Autor inválido');
 
-            // Verificar coautores, se fornecidos
             if (coautores && coautores.length > 0) {
-                const coautoresExistentes = await Autor.findAll({ where: { id: coautores } });
+                const coautoresExistentes = await this.Usuario.findAll({ where: { id: coautores, tipo: 'autor' } });
                 if (coautoresExistentes.length !== coautores.length) {
-                    throw new Error('Um ou mais coautores não encontrados');
+                    throw new Error('Um ou mais coautores não encontrados ou inválidos');
                 }
             }
 
-            // Criar projeto
-            const projeto = await Projeto.create(projetoData);
+            const projeto = await this.Projeto.create(projetoData);
 
-            // Associar coautores
             if (coautores && coautores.length > 0) {
-                await projeto.addCoautores(coautores);
+                await projeto.setCoautores(coautores);
             }
 
             return await this.getById(projeto.id);
@@ -69,14 +66,13 @@ export class ProjetosService {
     async update(id, data) {
         try {
             const { coautores, ...projetoData } = data;
-            const projeto = await Projeto.findByPk(id);
+            const projeto = await this.Projeto.findByPk(id);
             if (!projeto) throw new Error('Projeto não encontrado');
 
-            // Validações manuais
-            if (projetoData.premioId && !await Premio.findByPk(projetoData.premioId)) {
+            if (projetoData.premioId && !await this.Premio.findByPk(projetoData.premioId)) {
                 throw new Error('Prêmio não encontrado');
             }
-            if (projetoData.autorId && !await Autor.findByPk(projetoData.autorId)) {
+            if (projetoData.autorId && !await this.Usuario.findByPk(projetoData.autorId)) {
                 throw new Error('Autor não encontrado');
             }
             if (projetoData.titulo && projetoData.titulo.trim() === '') {
@@ -92,11 +88,10 @@ export class ProjetosService {
                 throw new Error('O campo data de envio é inválido');
             }
 
-            // Verificar coautores
-            if (coautores) {
-                const coautoresExistentes = await Autor.findAll({ where: { id: coautores } });
+            if (coautores && coautores.length > 0) {
+                const coautoresExistentes = await this.Usuario.findAll({ where: { id: coautores, tipo: 'autor' } });
                 if (coautoresExistentes.length !== coautores.length) {
-                    throw new Error('Um ou mais coautores não encontrados');
+                    throw new Error('Um ou mais coautores não encontrados ou inválidos');
                 }
             }
 
@@ -112,7 +107,7 @@ export class ProjetosService {
     }
 
     async delete(id) {
-        const projeto = await Projeto.findByPk(id);
+        const projeto = await this.Projeto.findByPk(id);
         if (!projeto) throw new Error('Projeto não encontrado');
         await projeto.destroy();
     }

@@ -1,13 +1,24 @@
 import { Premio } from '../models/Premio.js';
 import { Cronograma } from '../models/Cronograma.js';
+import { Projeto } from '../models/Projeto.js'; // Adicionado
 
 export class PremiosService {
     async getAll() {
-        return await Premio.findAll({ include: [Cronograma] });
+        return await Premio.findAll({
+            include: [
+                { model: Cronograma, as: 'cronogramas' }, // Ajustado para usar o alias correto
+                { model: Projeto, as: 'projetos' } // Adicionado
+            ]
+        });
     }
 
     async getById(id) {
-        const premio = await Premio.findByPk(id, { include: [Cronograma] });
+        const premio = await Premio.findByPk(id, {
+            include: [
+                { model: Cronograma, as: 'cronogramas' },
+                { model: Projeto, as: 'projetos' }
+            ]
+        });
         if (!premio) throw new Error('Prêmio não encontrado');
         return premio;
     }

@@ -1,5 +1,6 @@
 import express from 'express';
 import { ProjetosService } from '../services/ProjetosService.js';
+import autenticar from '../middlewares/auth.js';
 
 export class ProjetosController {
     constructor(projetosService = new ProjetosService()) {
@@ -7,9 +8,9 @@ export class ProjetosController {
         this.router = express.Router();
         this.router.get('/', this.getAll.bind(this));
         this.router.get('/:id', this.getById.bind(this));
-        this.router.post('/', this.create.bind(this));
-        this.router.put('/:id', this.update.bind(this));
-        this.router.delete('/:id', this.delete.bind(this));
+        this.router.post('/', autenticar(['autor']), this.create.bind(this));
+        this.router.put('/:id', autenticar(['autor']), this.update.bind(this));
+        this.router.delete('/:id', autenticar(['admin']), this.delete.bind(this));
     }
 
     async getAll(req, res) {

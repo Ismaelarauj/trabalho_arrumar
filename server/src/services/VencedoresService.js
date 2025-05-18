@@ -1,28 +1,34 @@
-import { Projeto } from '../models/Projeto.js';
-import { Avaliacao } from '../models/Avaliacao.js';
-import { Autor } from '../models/Autor.js';
-import { Premio } from '../models/Premio.js';
 import { Op } from 'sequelize';
 
 export class VencedoresService {
+    constructor({ Projeto, Avaliacao, Usuario, Premio }) {
+        this.Projeto = Projeto;
+        this.Avaliacao = Avaliacao;
+        this.Usuario = Usuario;
+        this.Premio = Premio;
+    }
+
     async getAll() {
         try {
-            const projetos = await Projeto.findAll({
+            const projetos = await this.Projeto.findAll({
                 include: [
-                    { model: Autor, as: 'Autor' },
-                    { model: Autor, as: 'Coautores' },
-                    { model: Premio },
+                    { model: this.Usuario, as: 'Autor' },
+                    { model: this.Usuario, as: 'Coautores', through: { attributes: [] } },
+                    { model: this.Premio, as: 'Premio' },
                     {
-                        model: Avaliacao,
+                        model: this.Avaliacao,
+                        as: 'avaliacoes',
                         required: true,
-                        as: 'Avaliacoes',
+                        where: { nota: { [Op.gte]: 6 } },
                         attributes: ['nota']
                     }
                 ],
                 where: {
                     status: 'avaliado'
                 },
-                order: [[{ model: Avaliacao, as: 'Avaliacoes' }, 'nota', 'DESC']]
+                order: [
+                    [{ model: this.Avaliacao, as: 'avaliacoes' }, 'nota', 'DESC'] // Corrigido para usar o alias
+                ]
             });
             console.log('Projetos vencedores:', JSON.stringify(projetos, null, 2)); // Log para depuração
             return projetos;

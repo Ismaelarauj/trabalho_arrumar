@@ -5,17 +5,21 @@ import {
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
 import api from '../services/api.js';
+import { jwtDecode } from 'jwt-decode';
 
 const CrudPremio = () => {
     const [premios, setPremios] = useState([]);
     const [open, setOpen] = useState(false);
     const [editId, setEditId] = useState(null);
+    const [error, setError] = useState(null); // Estado para erros
     const [formData, setFormData] = useState({
         nome: '',
         descricao: '',
         ano: '',
         cronogramas: [{ dataInicio: '', etapa: '', dataFim: '' }]
     });
+    const token = localStorage.getItem('token');
+    const isAdmin = token ? jwtDecode(token).role === 'admin' : false;
 
     useEffect(() => {
         fetchPremios();
@@ -25,27 +29,35 @@ const CrudPremio = () => {
         try {
             const response = await api.get('/premios');
             setPremios(response.data);
+            setError(null); // Limpa o erro se a requisição for bem-sucedida
         } catch (error) {
             console.error('Erro ao buscar prêmios:', error);
+            setError('Erro ao carregar prêmios: ' + (error.response?.data?.error || error.message));
         }
     };
 
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    };
+
     const handleOpen = (premio = null) => {
-        if (premio) {
+        if (premio && isAdmin) {
             setEditId(premio.id);
             setFormData({
                 nome: premio.nome,
                 descricao: premio.descricao,
                 ano: premio.ano.toString(),
-                cronogramas: premio.Cronogramas?.length > 0
-                    ? premio.Cronogramas.map(c => ({
-                        dataInicio: c.dataInicio,
+                cronogramas: premio.cronogramas?.length > 0
+                    ? premio.cronogramas.map(c => ({
+                        dataInicio: formatDate(c.dataInicio),
                         etapa: c.etapa,
-                        dataFim: c.dataFim
+                        dataFim: formatDate(c.dataFim)
                     }))
                     : [{ dataInicio: '', etapa: '', dataFim: '' }]
             });
-        } else {
+        } else if (isAdmin) {
             setEditId(null);
             setFormData({
                 nome: '',
@@ -85,8 +97,11 @@ const CrudPremio = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!isAdmin) {
+            alert('Apenas administradores podem criar ou editar prêmios.');
+            return;
+        }
         try {
-            // Validar campos
             if (!formData.nome.trim() || !formData.descricao.trim()) {
                 throw new Error('Nome e descrição são obrigatórios');
             }
@@ -95,7 +110,6 @@ const CrudPremio = () => {
                 throw new Error('Ano deve ser um número entre 2000 e 2100');
             }
 
-            // Validar cronogramas
             const cronogramas = formData.cronogramas.map(c => ({
                 dataInicio: c.dataInicio,
                 etapa: c.etapa.trim(),
@@ -132,13 +146,18 @@ const CrudPremio = () => {
     };
 
     const handleDelete = async (id) => {
+        if (!isAdmin) {
+            alert('Apenas administradores podem excluir prêmios.');
+            return;
+        }
         if (window.confirm('Deseja excluir este prêmio?')) {
             try {
                 await api.delete(`/premios/${id}`);
                 alert('Prêmio excluído com sucesso!');
                 fetchPremios();
             } catch (error) {
-                alert('Erro ao excluir prêmio: ' + error.message);
+                console.error('Erro ao excluir prêmio:', error.response?.data || error.message);
+                alert('Erro ao excluir prêmio: ' + (error.response?.data?.error || error.message));
             }
         }
     };
@@ -149,7 +168,12 @@ const CrudPremio = () => {
                 <Typography variant="h4" gutterBottom>
                     Gerenciamento de Prêmios
                 </Typography>
-                <Button variant="contained" color="primary" startIcon={<Add />} onClick={() => handleOpen()}>
+                {error && (
+                    <Typography color="error" sx={{ mt: 2 }}>
+                        {error}
+                    </Typography>
+                )}
+                <Button variant="contained" color="primary" startIcon={<Add />} onClick={() => handleOpen()} disabled={!isAdmin}>
                     Novo Prêmio
                 </Button>
                 <Table sx={{ mt: 2 }}>
@@ -169,17 +193,17 @@ const CrudPremio = () => {
                                 <TableCell>{premio.descricao}</TableCell>
                                 <TableCell>{premio.ano}</TableCell>
                                 <TableCell>
-                                    {premio.Cronogramas?.map((c, i) => (
+                                    {premio.cronogramas?.map((c, i) => (
                                         <div key={i}>
-                                            {c.etapa} ({c.dataInicio} a {c.dataFim})
+                                            {c.etapa} ({formatDate(c.dataInicio)} a {formatDate(c.dataFim)})
                                         </div>
                                     ))}
                                 </TableCell>
                                 <TableCell>
-                                    <IconButton onClick={() => handleOpen(premio)}>
+                                    <IconButton onClick={() => handleOpen(premio)} disabled={!isAdmin}>
                                         <Edit />
                                     </IconButton>
-                                    <IconButton onClick={() => handleDelete(premio.id)}>
+                                    <IconButton onClick={() => handleDelete(premio.id)} disabled={!isAdmin}>
                                         <Delete />
                                     </IconButton>
                                 </TableCell>
@@ -273,7 +297,7 @@ const CrudPremio = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>Cancelar</Button>
-                    <Button type="submit" variant="contained" onClick={handleSubmit}>
+                    <Button type="submit" variant="contained" onClick={handleSubmit} disabled={!isAdmin}>
                         Salvar
                     </Button>
                 </DialogActions>

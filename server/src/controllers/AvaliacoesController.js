@@ -1,5 +1,6 @@
 import express from 'express';
 import { AvaliacoesService } from '../services/AvaliacoesService.js';
+import { autenticar } from '../middlewares/auth.js'; // Ajustado para named import
 
 export class AvaliacoesController {
     constructor(avaliacoesService = new AvaliacoesService()) {
@@ -7,9 +8,9 @@ export class AvaliacoesController {
         this.router = express.Router();
         this.router.get('/', this.getAll.bind(this));
         this.router.get('/:id', this.getById.bind(this));
-        this.router.post('/', this.create.bind(this));
-        this.router.put('/:id', this.update.bind(this));
-        this.router.delete('/:id', this.delete.bind(this));
+        this.router.post('/', autenticar(['avaliador']), this.create.bind(this));
+        this.router.put('/:id', autenticar(['avaliador']), this.update.bind(this));
+        this.router.delete('/:id', autenticar(['admin']), this.delete.bind(this));
     }
 
     async getAll(req, res) {

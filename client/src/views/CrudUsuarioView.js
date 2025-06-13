@@ -1,185 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
-    Container, Typography, Box, TextField, Button, Table, TableBody, TableCell,
-    TableHead, TableRow, IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
+    Container,
+    Typography,
+    Box,
+    TextField,
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableRow,
+    IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
     MenuItem
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
-import { useLocation, useNavigate } from 'react-router-dom';
-import api from '../services/api.js';
-import { jwtDecode } from 'jwt-decode';
 
-const CrudUsuario = () => {
-    const [usuarios, setUsuarios] = useState([]);
-    const [open, setOpen] = useState(false);
-    const [editId, setEditId] = useState(null);
-    const [formData, setFormData] = useState({
-        nome: '',
-        cpf: '',
-        dataNascimento: '',
-        tipo: '',
-        instituicao: '',
-        especialidade: '',
-        email: '',
-        senha: '',
-        telefone: '',
-        rua: '',
-        cidade: '',
-        estado: '',
-        cep: ''
-    });
-    const token = localStorage.getItem('token');
-    const currentUserId = token ? jwtDecode(token).id : null;
-    const isAdmin = token ? jwtDecode(token).role === 'admin' : false;
-    const location = useLocation();
-    const navigate = useNavigate();
-    const isCadastroRoute = location.pathname === '/cadastro';
-
-    useEffect(() => {
-        if (token && !isCadastroRoute) {
-            fetchUsuarios();
-        }
-        if (isCadastroRoute) {
-            setOpen(true);
-        }
-    }, [token, isCadastroRoute]);
-
-    const fetchUsuarios = async () => {
-        try {
-            const response = await api.get('/usuarios');
-            console.log('Usuários recebidos:', response.data);
-            setUsuarios(response.data);
-        } catch (error) {
-            console.error('Erro ao buscar usuários:', error);
-        }
-    };
-
-    const handleOpen = (usuario = null) => {
-        if (usuario) {
-            setEditId(usuario.id);
-            setFormData({
-                nome: usuario.nome || '',
-                cpf: usuario.cpf || '',
-                dataNascimento: usuario.dataNascimento ? usuario.dataNascimento.split('T')[0] : '',
-                tipo: usuario.tipo || '',
-                instituicao: usuario.instituicao || '',
-                especialidade: usuario.especialidade || '',
-                email: usuario.email || '',
-                senha: '',
-                telefone: usuario.Contato?.telefone || '',
-                rua: usuario.Endereco?.rua || '',
-                cidade: usuario.Endereco?.cidade || '',
-                estado: usuario.Endereco?.estado || '',
-                cep: usuario.Endereco?.cep || ''
-            });
-        } else if (!isCadastroRoute) {
-            setEditId(null);
-            setFormData({
-                nome: '',
-                cpf: '',
-                dataNascimento: '',
-                tipo: '',
-                instituicao: '',
-                especialidade: '',
-                email: '',
-                senha: '',
-                telefone: '',
-                rua: '',
-                cidade: '',
-                estado: '',
-                cep: ''
-            });
-        }
-        setOpen(true);
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-        if (isCadastroRoute) {
-            navigate('/login');
-        }
-    };
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            // Validação manual para campos condicionalmente obrigatórios
-            const errors = [];
-            if (!formData.nome) errors.push('O nome é obrigatório');
-            if (!formData.cpf) errors.push('O CPF é obrigatório');
-            if (!formData.dataNascimento) errors.push('A data de nascimento é obrigatória');
-            if (!formData.tipo) errors.push('O tipo é obrigatório');
-            if (formData.tipo === 'autor' && !formData.instituicao) errors.push('A instituição é obrigatória para autores');
-            if (formData.tipo === 'avaliador' && !formData.especialidade) errors.push('A especialidade é obrigatória para avaliadores');
-            if (!formData.email) errors.push('O email é obrigatório');
-            if (!formData.senha && !editId) errors.push('A senha é obrigatória');
-
-            if (errors.length > 0) {
-                alert('Erro ao salvar usuário: ' + errors.join(', '));
-                return;
-            }
-
-            console.log('Enviando dados:', formData);
-            if (editId) {
-                if (!token) throw new Error('Autenticação necessária para editar');
-                const isSelfEdit = currentUserId === editId;
-                if (!isAdmin && !isSelfEdit) throw new Error('Apenas o administrador ou o próprio usuário podem editar');
-                const originalUser = usuarios.find(u => u.id === editId);
-                const dataToSend = { ...formData };
-                if (!isAdmin) {
-                    dataToSend.cpf = originalUser.cpf;
-                    dataToSend.email = originalUser.email;
-                }
-                await api.put(`/usuarios/${editId}`, dataToSend);
-                alert('Usuário atualizado com sucesso!');
-            } else {
-                await api.post('/usuarios', formData);
-                alert('Usuário criado com sucesso!');
-                if (isCadastroRoute) {
-                    navigate('/login');
-                }
-            }
-            if (!isCadastroRoute) {
-                fetchUsuarios();
-            }
-            handleClose();
-        } catch (error) {
-            console.error('Erro ao salvar usuário:', error.response?.data || error.message);
-            let errorMessage = 'Erro ao salvar usuário: ';
-            if (error.response?.status === 400 && error.response?.data?.errors) {
-                errorMessage += error.response.data.errors.map(err => `${err.field}: ${err.message}`).join(', ');
-            } else {
-                errorMessage += error.response?.data?.error || error.message;
-            }
-            alert(errorMessage);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        if (!token || !isAdmin) {
-            alert('Apenas administradores podem excluir usuários.');
-            return;
-        }
-        if (currentUserId === id) {
-            alert('Você não pode excluir sua própria conta.');
-            return;
-        }
-        if (window.confirm('Deseja excluir este usuário?')) {
-            try {
-                await api.delete(`/usuarios/${id}`);
-                alert('Usuário excluído com sucesso!');
-                fetchUsuarios();
-            } catch (error) {
-                console.error('Erro ao excluir usuário:', error);
-                alert('Erro ao excluir usuário: ' + error.message);
-            }
-        }
-    };
-
+const CrudUsuarioView = ({
+                             usuarios,
+                             open,
+                             editId,
+                             formData,
+                             token,
+                             currentUserId,
+                             isAdmin,
+                             isCadastroRoute,
+                             handleOpen,
+                             handleClose,
+                             handleChange,
+                             handleSubmit,
+                             handleDelete
+                         }) => {
     return (
         <Container maxWidth="lg">
             <Box sx={{ mt: 4 }}>
@@ -259,6 +113,8 @@ const CrudUsuario = () => {
                             onChange={handleChange}
                             required
                             disabled={editId && !isAdmin}
+                            inputProps={{ maxLength: 11, pattern: "\\d{11}" }}
+                            helperText="Digite apenas os 11 dígitos do CPF"
                         />
                         <TextField
                             label="Data de Nascimento"
@@ -353,6 +209,8 @@ const CrudUsuario = () => {
                             margin="normal"
                             value={formData.cep}
                             onChange={handleChange}
+                            inputProps={{ maxLength: 8, pattern: "\\d{8}" }}
+                            helperText="Digite apenas os 8 dígitos do CEP"
                         />
                     </form>
                 </DialogContent>
@@ -367,4 +225,4 @@ const CrudUsuario = () => {
     );
 };
 
-export default CrudUsuario;
+export default CrudUsuarioView;

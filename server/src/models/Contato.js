@@ -32,3 +32,5 @@ export const defineContato = (sequelize) => {
 
     return Contato;
 };
+
+export default defineContato;

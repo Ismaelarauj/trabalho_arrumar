@@ -1,9 +1,8 @@
 import express from 'express';
-import { AvaliacoesService } from '../services/AvaliacoesService.js';
-import { autenticar } from '../middlewares/auth.js'; // Ajustado para named import
+import { autenticar } from '../middlewares/auth.js';
 
 export class AvaliacoesController {
-    constructor(avaliacoesService = new AvaliacoesService()) {
+    constructor(avaliacoesService) {
         this.avaliacoesService = avaliacoesService;
         this.router = express.Router();
         this.router.get('/', this.getAll.bind(this));
@@ -34,7 +33,11 @@ export class AvaliacoesController {
 
     async create(req, res) {
         try {
-            const avaliacao = await this.avaliacoesService.create(req.body);
+            const usuarioLogado = req.usuario;
+            const data = { ...req.body, avaliadorId: usuarioLogado.id };
+            const projeto = await sequelize.models.Projeto.findByPk(data.projetoId);
+            if (!projeto) return res.status(400).json({ error: 'Projeto não encontrado' });
+            const avaliacao = await this.avaliacoesService.create(data);
             res.status(201).json(avaliacao);
         } catch (error) {
             res.status(400).json({ error: error.message });
@@ -43,8 +46,14 @@ export class AvaliacoesController {
 
     async update(req, res) {
         try {
-            const avaliacao = await this.avaliacoesService.update(req.params.id, req.body);
-            res.json(avaliacao);
+            const usuarioLogado = req.usuario;
+            const avaliacao = await this.avaliacoesService.getById(req.params.id);
+            if (!avaliacao) return res.status(404).json({ error: 'Avaliação não encontrada' });
+            if (avaliacao.avaliadorId !== usuarioLogado.id) {
+                return res.status(403).json({ error: 'Apenas o avaliador que criou a avaliação pode atualizá-la' });
+            }
+            const avaliacaoAtualizada = await this.avaliacoesService.update(req.params.id, req.body);
+            res.json(avaliacaoAtualizada);
         } catch (error) {
             res.status(400).json({ error: error.message });
         }

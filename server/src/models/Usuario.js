@@ -17,7 +17,7 @@ export const defineUsuario = (sequelize) => {
             unique: true
         },
         dataNascimento: {
-            type: DataTypes.DATE, // Ajustado de DATEONLY para DATE para corresponder à tabela
+            type: DataTypes.DATE,
             allowNull: false
         },
         tipo: {
@@ -49,3 +49,5 @@ export const defineUsuario = (sequelize) => {
 
     return Usuario;
 };
+
+export default defineUsuario;

@@ -1,114 +1,126 @@
+import ProjetoDTO from '../dtos/ProjetoDTO.js';
+
+console.log('Carregando ProjetosService.js');
+
 export class ProjetosService {
-    constructor({ Projeto, Usuario, Premio }) {
+    constructor({ Projeto, Usuario, Premio, Avaliacao }) {
         this.Projeto = Projeto;
         this.Usuario = Usuario;
         this.Premio = Premio;
-    }
-
-    async getAll() {
-        return await this.Projeto.findAll({
-            include: [
-                { model: this.Usuario, as: 'Autor' },
-                { model: this.Premio, as: 'Premio' }, // Adicionado o alias 'Premio' conforme definido no belongsTo
-                { model: this.Usuario, as: 'Coautores', through: { attributes: [] } }
-            ]
-        });
-    }
-
-    async getById(id) {
-        const projeto = await this.Projeto.findByPk(id, {
-            include: [
-                { model: this.Usuario, as: 'Autor' },
-                { model: this.Premio, as: 'Premio' }, // Adicionado o alias 'Premio' conforme definido no belongsTo
-                { model: this.Usuario, as: 'Coautores', through: { attributes: [] } }
-            ]
-        });
-        if (!projeto) throw new Error('Projeto não encontrado');
-        return projeto;
+        this.Avaliacao = Avaliacao;
     }
 
     async create(data) {
         try {
-            const { coautores, ...projetoData } = data;
+            console.log('Dados recebidos para criar projeto:', data);
+            const { premioId, autorId, coautores, titulo, resumo, areaTematica, dataEnvio, arquivoPath } = data;
 
-            if (!projetoData.premioId) throw new Error('O campo prêmio é obrigatório');
-            if (!projetoData.autorId) throw new Error('O campo autor é obrigatório');
-            if (!projetoData.titulo || projetoData.titulo.trim() === '') throw new Error('O campo título é obrigatório');
-            if (!projetoData.resumo || projetoData.resumo.trim() === '') throw new Error('O campo resumo é obrigatório');
-            if (!projetoData.areaTematica || projetoData.areaTematica.trim() === '') throw new Error('O campo área temática é obrigatório');
-            if (!projetoData.dataEnvio || isNaN(new Date(projetoData.dataEnvio).getTime())) throw new Error('O campo data de envio é inválido');
-
-            const premio = await this.Premio.findByPk(projetoData.premioId);
-            if (!premio) throw new Error('Prêmio não encontrado');
-            const autor = await this.Usuario.findByPk(projetoData.autorId);
-            if (!autor || autor.tipo !== 'autor') throw new Error('Autor inválido');
-
-            if (coautores && coautores.length > 0) {
-                const coautoresExistentes = await this.Usuario.findAll({ where: { id: coautores, tipo: 'autor' } });
-                if (coautoresExistentes.length !== coautores.length) {
-                    throw new Error('Um ou mais coautores não encontrados ou inválidos');
-                }
+            const autor = await this.Usuario.findByPk(autorId);
+            console.log('Autor encontrado:', autor ? { id: autor.id, tipo: autor.tipo } : 'Não encontrado');
+            if (!autor || autor.tipo !== 'autor') {
+                throw new Error('Autor inválido');
             }
+
+            const premio = await this.Premio.findByPk(premioId);
+            console.log('Prêmio encontrado:', premio ? { id: premio.id } : 'Não encontrado');
+            if (!premio) {
+                throw new Error('Prêmio não encontrado');
+            }
+
+            const projetoData = {
+                premioId,
+                autorId,
+                titulo,
+                resumo,
+                areaTematica,
+                dataEnvio,
+                arquivoPath,
+                status: 'pendente'
+            };
 
             const projeto = await this.Projeto.create(projetoData);
+            console.log('Projeto criado:', projeto.toJSON());
 
             if (coautores && coautores.length > 0) {
-                await projeto.setCoautores(coautores);
+                const coautorRecords = await Promise.all(coautores.map(async (coautorId) => {
+                    const coautor = await this.Usuario.findByPk(coautorId);
+                    if (!coautor || coautor.tipo !== 'autor') {
+                        throw new Error(`Coautor inválido: ${coautorId}`);
+                    }
+                    return coautor;
+                }));
+                await projeto.setCoautores(coautorRecords);
+                console.log('Coautores associados:', coautorRecords.map(c => c.id));
             }
 
-            return await this.getById(projeto.id);
+            const projetoCompleto = await this.getById(projeto.id);
+            return new ProjetoDTO(projetoCompleto);
         } catch (error) {
             console.error('Erro ao criar projeto:', error.message);
             throw error;
         }
     }
 
-    async update(id, data) {
-        try {
-            const { coautores, ...projetoData } = data;
-            const projeto = await this.Projeto.findByPk(id);
-            if (!projeto) throw new Error('Projeto não encontrado');
-
-            if (projetoData.premioId && !await this.Premio.findByPk(projetoData.premioId)) {
-                throw new Error('Prêmio não encontrado');
-            }
-            if (projetoData.autorId && !await this.Usuario.findByPk(projetoData.autorId)) {
-                throw new Error('Autor não encontrado');
-            }
-            if (projetoData.titulo && projetoData.titulo.trim() === '') {
-                throw new Error('O campo título não pode ser vazio');
-            }
-            if (projetoData.resumo && projetoData.resumo.trim() === '') {
-                throw new Error('O campo resumo não pode ser vazio');
-            }
-            if (projetoData.areaTematica && projetoData.areaTematica.trim() === '') {
-                throw new Error('O campo área temática não pode ser vazio');
-            }
-            if (projetoData.dataEnvio && isNaN(new Date(projetoData.dataEnvio).getTime())) {
-                throw new Error('O campo data de envio é inválido');
-            }
-
-            if (coautores && coautores.length > 0) {
-                const coautoresExistentes = await this.Usuario.findAll({ where: { id: coautores, tipo: 'autor' } });
-                if (coautoresExistentes.length !== coautores.length) {
-                    throw new Error('Um ou mais coautores não encontrados ou inválidos');
+    async getById(id) {
+        const projeto = await this.Projeto.findByPk(id, {
+            include: [
+                { model: this.Premio, as: 'Premio' },
+                { model: this.Usuario, as: 'Autor' },
+                { model: this.Usuario, as: 'Coautores', through: { attributes: [] } },
+                {
+                    model: this.Avaliacao,
+                    as: 'avaliacoes',
+                    include: [{ model: this.Usuario, as: 'Avaliador' }]
                 }
-            }
+            ]
+        });
+        if (!projeto) throw new Error('Projeto não encontrado');
+        return projeto;
+    }
 
-            await projeto.update(projetoData);
-            if (coautores) {
-                await projeto.setCoautores(coautores);
-            }
-            return await this.getById(id);
-        } catch (error) {
-            console.error('Erro ao atualizar projeto:', error.message);
-            throw error;
+    async getAll(whereClause = {}) {
+        const projetos = await this.Projeto.findAll({
+            where: whereClause,
+            include: [
+                { model: this.Premio, as: 'Premio' },
+                { model: this.Usuario, as: 'Autor' },
+                { model: this.Usuario, as: 'Coautores', through: { attributes: [] } },
+                {
+                    model: this.Avaliacao,
+                    as: 'avaliacoes',
+                    include: [{ model: this.Usuario, as: 'Avaliador' }]
+                }
+            ]
+        });
+        return projetos.map(projeto => new ProjetoDTO(projeto));
+    }
+
+    async update(id, data) {
+        const projeto = await this.Projeto.findByPk(id);
+        if (!projeto) throw new Error('Projeto não encontrado');
+
+        const { coautores, ...projetoData } = data;
+        await projeto.update(projetoData);
+
+        if (coautores) {
+            const coautorRecords = await Promise.all(coautores.map(async (coautorId) => {
+                const coautor = await this.Usuario.findByPk(coautorId);
+                if (!coautor || coautor.tipo !== 'autor') {
+                    throw new Error(`Coautor inválido: ${coautorId}`);
+                }
+                return coautor;
+            }));
+            await projeto.setCoautores(coautorRecords);
         }
+
+        const projetoAtualizado = await this.getById(id);
+        return new ProjetoDTO(projetoAtualizado);
     }
 
     async delete(id) {
         const projeto = await this.Projeto.findByPk(id);
         if (!projeto) throw new Error('Projeto não encontrado');
         await projeto.destroy();
+        return { message: 'Projeto excluído com sucesso' };
     }
 }

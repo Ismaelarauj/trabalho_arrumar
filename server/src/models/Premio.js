@@ -18,6 +18,14 @@ export const definePremio = (sequelize) => {
         ano: {
             type: DataTypes.INTEGER,
             allowNull: false
+        },
+        criadorId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            references: {
+                model: 'Usuarios', // Nome da tabela de usuários
+                key: 'id'
+            }
         }
     }, {
         tableName: 'Premios',
@@ -26,3 +34,5 @@ export const definePremio = (sequelize) => {
 
     return Premio;
 };
+
+export default definePremio;

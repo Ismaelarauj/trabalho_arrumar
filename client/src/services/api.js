@@ -1,28 +1,27 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api', // Removido o "/api" do baseURL
+    baseURL: 'http://localhost:5000/api',
+    withCredentials: true, // Permite enviar cookies automaticamente
 });
 
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-        console.log('Token enviado:', token); // Log para depuração
-    } else {
-        console.log('Nenhum token encontrado no localStorage'); // Log para depuração
-    }
-    console.log('Enviando requisição para:', config.url); // Log adicional para depuração
+    console.log('Requisição enviada:', config.url); // Log para depuração
     return config;
+}, (error) => {
+    console.error('Erro na requisição:', error.message);
+    return Promise.reject(error);
 });
 
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        console.log('Resposta recebida:', response.config.url, response.status);
+        return response;
+    },
     (error) => {
+        console.error('Erro na resposta:', error.response?.status, error.response?.data);
         if (error.response && error.response.status === 401) {
-            localStorage.removeItem('token');
-            window.location.href = '/login';
-            alert('Sua sessão expirou. Por favor, faça login novamente.');
+            window.dispatchEvent(new Event('authError'));
         }
         return Promise.reject(error);
     }

@@ -45,3 +45,5 @@ export const defineProjeto = (sequelize) => {
 
     return Projeto;
 };
+
+export default defineProjeto;

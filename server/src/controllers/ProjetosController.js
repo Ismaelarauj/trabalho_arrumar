@@ -1,77 +1,79 @@
 import express from 'express';
-import { ProjetosService } from '../services/ProjetosService.js';
-import autenticar from '../middlewares/auth.js';
-
+import { autenticar } from '../middlewares/auth.js';
+import { ProjetosService } from '../services/ProjetosService.js'; // Importando ProjetosService
 export class ProjetosController {
-    constructor(projetosService = new ProjetosService()) {
-        this.projetosService = projetosService;
+    constructor(allModels) {
         this.router = express.Router();
-        this.router.get('/', this.getAll.bind(this));
-        this.router.get('/:id', this.getById.bind(this));
-        this.router.post('/', autenticar(['autor']), this.create.bind(this));
-        this.router.put('/:id', autenticar(['autor']), this.update.bind(this));
-        this.router.delete('/:id', autenticar(['admin']), this.delete.bind(this));
+        const { Projeto, Usuario, Premio, Avaliacao } = allModels;
+        this.projetosService = new ProjetosService({ Projeto, Usuario, Premio, Avaliacao });
+
+        this.router.post('/enviar', autenticar(['autor']), this.create.bind(this));
+        this.router.get('/', autenticar(['admin', 'autor', 'avaliador']), this.getAll.bind(this));
+        this.router.get('/:id', autenticar(['admin', 'autor', 'avaliador']), this.getById.bind(this));
+        this.router.put('/:id', autenticar(['admin', 'autor']), this.update.bind(this));
+        this.router.delete('/:id', autenticar(['admin', 'autor']), this.delete.bind(this));
+    }
+
+    async create(req, res) {
+        try {
+            const usuarioLogado = req.usuario;
+            const data = { ...req.body, autorId: usuarioLogado.id };
+            const projeto = await this.projetosService.create(data);
+            res.status(201).json(projeto);
+        } catch (error) {
+            res.status(500).json({ error: 'Erro ao criar projeto: ' + error.message });
+        }
     }
 
     async getAll(req, res) {
         try {
-            const projetos = await this.projetosService.getAll();
+            const usuarioLogado = req.usuario;
+            const whereClause = usuarioLogado.tipo === 'autor' ? { autorId: usuarioLogado.id } : {};
+            const projetos = await this.projetosService.getAll(whereClause);
             res.json(projetos);
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar projetos: ' + error.message });
         }
     }
 
     async getById(req, res) {
         try {
             const projeto = await this.projetosService.getById(req.params.id);
-            if (!projeto) return res.status(404).json({ error: 'Projeto não encontrado' });
+            const usuarioLogado = req.usuario;
+            if (usuarioLogado.tipo !== 'admin' && projeto.autorId !== usuarioLogado.id) {
+                return res.status(403).json({ error: 'Acesso negado' });
+            }
             res.json(projeto);
         } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    }
-
-    async create(req, res) {
-        try {
-            const projeto = await this.projetosService.create(req.body);
-            res.status(201).json(projeto);
-        } catch (error) {
-            if (error.name === 'SequelizeValidationError') {
-                const errors = error.errors.map(err => ({
-                    field: err.path,
-                    message: err.message
-                }));
-                res.status(400).json({ errors });
-            } else {
-                res.status(400).json({ error: error.message });
-            }
+            res.status(500).json({ error: 'Erro ao buscar projeto: ' + error.message });
         }
     }
 
     async update(req, res) {
         try {
-            const projeto = await this.projetosService.update(req.params.id, req.body);
-            res.json(projeto);
-        } catch (error) {
-            if (error.name === 'SequelizeValidationError') {
-                const errors = error.errors.map(err => ({
-                    field: err.path,
-                    message: err.message
-                }));
-                res.status(400).json({ errors });
-            } else {
-                res.status(400).json({ error: error.message });
+            const projeto = await this.projetosService.getById(req.params.id);
+            const usuarioLogado = req.usuario;
+            if (usuarioLogado.tipo !== 'admin' && projeto.autorId !== usuarioLogado.id) {
+                return res.status(403).json({ error: 'Acesso negado' });
             }
+            const projetoAtualizado = await this.projetosService.update(req.params.id, req.body);
+            res.json(projetoAtualizado);
+        } catch (error) {
+            res.status(500).json({ error: 'Erro ao atualizar projeto: ' + error.message });
         }
     }
 
     async delete(req, res) {
         try {
+            const projeto = await this.projetosService.getById(req.params.id);
+            const usuarioLogado = req.usuario;
+            if (usuarioLogado.tipo !== 'admin' && projeto.autorId !== usuarioLogado.id) {
+                return res.status(403).json({ error: 'Acesso negado' });
+            }
             await this.projetosService.delete(req.params.id);
-            res.status(204).send();
+            res.json({ message: 'Projeto excluído com sucesso' });
         } catch (error) {
-            res.status(400).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao excluir projeto: ' + error.message });
         }
     }
 }

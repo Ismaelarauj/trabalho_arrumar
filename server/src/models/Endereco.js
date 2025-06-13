@@ -22,3 +22,5 @@ export const defineEndereco = (sequelize) => {
 
     return Endereco;
 };
+
+export default defineEndereco;

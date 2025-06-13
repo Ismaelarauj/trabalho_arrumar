@@ -7,40 +7,26 @@
   "scripts": {
     "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
     "start:backend": "node server/index.js",
-    "start:frontend": "cd client && react-scripts start",
-    "build": "cd client && react-scripts build",
-    "install:all": "npm install",
+    "start:frontend": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "install:all": "npm install && cd client && npm install",
     "dev:backend": "nodemon server/index.js",
-    "test": "cd client && react-scripts test",
+    "test": "cd client && npm run test",
     "audit:fix": "npm audit fix"
   },
   "dependencies": {
-    "axios": "^1.4.0",
     "bcrypt": "^6.0.0",
+    "connect-session-sequelize": "^7.1.7",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "express-session": "^1.18.1",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
     "mysql2": "^3.6.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.14.0",
-    "react-scripts": "^5.0.1",
     "sequelize": "^6.32.1"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
     "nodemon": "^3.0.1"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   }
 }

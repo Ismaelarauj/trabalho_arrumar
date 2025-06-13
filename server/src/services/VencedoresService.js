@@ -1,4 +1,5 @@
 import { Op } from 'sequelize';
+import ProjetoDTO from '../dtos/ProjetoDTO.js';
 
 export class VencedoresService {
     constructor({ Projeto, Avaliacao, Usuario, Premio }) {
@@ -15,25 +16,13 @@ export class VencedoresService {
                     { model: this.Usuario, as: 'Autor' },
                     { model: this.Usuario, as: 'Coautores', through: { attributes: [] } },
                     { model: this.Premio, as: 'Premio' },
-                    {
-                        model: this.Avaliacao,
-                        as: 'avaliacoes',
-                        required: true,
-                        where: { nota: { [Op.gte]: 6 } },
-                        attributes: ['nota']
-                    }
+                    { model: this.Avaliacao, as: 'avaliacoes', required: true, where: { nota: { [Op.gte]: 6 } } },
                 ],
-                where: {
-                    status: 'avaliado'
-                },
-                order: [
-                    [{ model: this.Avaliacao, as: 'avaliacoes' }, 'nota', 'DESC'] // Corrigido para usar o alias
-                ]
+                where: { status: 'avaliado' },
+                order: [[{ model: this.Avaliacao, as: 'avaliacoes' }, 'nota', 'DESC']],
             });
-            console.log('Projetos vencedores:', JSON.stringify(projetos, null, 2)); // Log para depuração
-            return projetos;
+            return projetos.map(p => new ProjetoDTO(p));
         } catch (error) {
-            console.error('Erro ao buscar vencedores:', error);
             throw error;
         }
     }

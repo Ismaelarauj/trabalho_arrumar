@@ -2,7 +2,7 @@ import express from 'express';
 import { VencedoresService } from '../services/VencedoresService.js';
 
 export class VencedoresController {
-    constructor(vencedoresService = new VencedoresService()) {
+    constructor(vencedoresService) {
         this.vencedoresService = vencedoresService;
         this.router = express.Router();
         this.router.get('/', this.getAll.bind(this));

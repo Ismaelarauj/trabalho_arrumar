@@ -39,3 +39,5 @@ export const defineAvaliacao = (sequelize) => {
 
     return Avaliacao;
 };
+
+export default defineAvaliacao;

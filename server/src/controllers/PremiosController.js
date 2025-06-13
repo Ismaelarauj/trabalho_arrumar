@@ -9,11 +9,11 @@ export class PremiosController {
         this.Avaliacao = Avaliacao;
         this.Usuario = Usuario;
         this.router = express.Router();
-        this.router.get('/', this.listar.bind(this));
+        this.router.get('/', autenticar(['admin', 'autor', 'avaliador']), this.listar.bind(this));
         this.router.post('/', autenticar(['admin']), this.criar.bind(this));
         this.router.put('/:id', autenticar(['admin']), this.atualizar.bind(this));
         this.router.delete('/:id', autenticar(['admin']), this.excluir.bind(this));
-        this.router.get('/vencedores', this.listarVencedores.bind(this));
+        this.router.get('/vencedores', autenticar(['admin', 'autor', 'avaliador']), this.listarVencedores.bind(this));
     }
 
     async listar(req, res) {
@@ -21,19 +21,31 @@ export class PremiosController {
             const premios = await this.Premio.findAll({
                 include: [
                     { model: this.Cronograma, as: 'cronogramas' },
-                    {
-                        model: this.Projeto,
-                        as: 'projetos',
-                        include: [
+                    { model: this.Projeto, as: 'projetos', include: [
                             { model: this.Avaliacao, as: 'avaliacoes' },
                             { model: this.Usuario, as: 'Autor' },
-                            { model: this.Usuario, as: 'Coautores', through: { attributes: [] } }
-                        ]
-                    }
-                ]
+                            { model: this.Usuario, as: 'Coautores', through: { attributes: [] } },
+                        ]},
+                ],
             });
-
-            res.json(premios); // Retorna todos os prêmios, sem filtros
+            res.json(premios);
+        } catch (error) {
+            res.status(500).json({ error: 'Erro ao listar prêmios: ' + error.message });
+        }
+    }
+    async getAll(req, res) {
+        try {
+            const usuarioLogado = req.session.user;
+            if (!['admin'].includes(usuarioLogado.tipo)) {
+                return res.status(403).json({ error: 'Apenas administradores podem listar prêmios' });
+            }
+            const createdByUser = await this.premiosService.getAll(true, usuarioLogado.id); // Prêmios criados pelo usuário
+            const createdByOthers = await this.premiosService.getAll(false); // Todos os prêmios, exceto filtragem
+            const filteredByOthers = createdByOthers.filter(p => p.criadorId !== usuarioLogado.id); // Exclui os do próprio usuário
+            res.json({
+                createdByUser,
+                createdByOthers: filteredByOthers,
+            });
         } catch (error) {
             res.status(500).json({ error: 'Erro ao listar prêmios: ' + error.message });
         }
@@ -45,25 +57,16 @@ export class PremiosController {
                 return res.status(403).json({ error: 'Apenas administradores podem criar prêmios' });
             }
             const { nome, ano, descricao, cronogramas } = req.body;
-
             if (!nome || !ano || !descricao) {
                 return res.status(400).json({ error: 'Nome, ano e descrição são obrigatórios' });
             }
-
             const premio = await this.Premio.create({ nome, ano, descricao });
-
             if (cronogramas && cronogramas.length > 0) {
-                const cronogramasData = cronogramas.map(c => ({
-                    ...c,
-                    premioId: premio.id
-                }));
-                await this.Cronograma.bulkCreate(cronogramasData);
+                await this.Cronograma.bulkCreate(cronogramas.map(c => ({ ...c, premioId: premio.id })));
             }
-
             const premioCompleto = await this.Premio.findByPk(premio.id, {
-                include: [{ model: this.Cronograma, as: 'cronogramas' }]
+                include: [{ model: this.Cronograma, as: 'cronogramas' }],
             });
-
             res.status(201).json(premioCompleto);
         } catch (error) {
             res.status(500).json({ error: 'Erro ao criar prêmio: ' + error.message });
@@ -75,36 +78,23 @@ export class PremiosController {
             if (req.usuario.role !== 'admin') {
                 return res.status(403).json({ error: 'Apenas administradores podem atualizar prêmios' });
             }
-
             const { id } = req.params;
             const { nome, ano, descricao, cronogramas } = req.body;
-
             if (!nome || !ano || !descricao) {
                 return res.status(400).json({ error: 'Nome, ano e descrição são obrigatórios' });
             }
-
             const premio = await this.Premio.findByPk(id);
-            if (!premio) {
-                return res.status(404).json({ error: 'Prêmio não encontrado' });
-            }
-
+            if (!premio) return res.status(404).json({ error: 'Prêmio não encontrado' });
             await premio.update({ nome, ano, descricao });
-
             if (cronogramas) {
                 await this.Cronograma.destroy({ where: { premioId: id } });
                 if (cronogramas.length > 0) {
-                    const cronogramasData = cronogramas.map(c => ({
-                        ...c,
-                        premioId: id
-                    }));
-                    await this.Cronograma.bulkCreate(cronogramasData);
+                    await this.Cronograma.bulkCreate(cronogramas.map(c => ({ ...c, premioId: id })));
                 }
             }
-
             const premioAtualizado = await this.Premio.findByPk(id, {
-                include: [{ model: this.Cronograma, as: 'cronogramas' }]
+                include: [{ model: this.Cronograma, as: 'cronogramas' }],
             });
-
             res.json(premioAtualizado);
         } catch (error) {
             res.status(500).json({ error: 'Erro ao atualizar prêmio: ' + error.message });
@@ -116,16 +106,11 @@ export class PremiosController {
             if (req.usuario.role !== 'admin') {
                 return res.status(403).json({ error: 'Apenas administradores podem excluir prêmios' });
             }
-
             const { id } = req.params;
             const premio = await this.Premio.findByPk(id);
-            if (!premio) {
-                return res.status(404).json({ error: 'Prêmio não encontrado' });
-            }
-
+            if (!premio) return res.status(404).json({ error: 'Prêmio não encontrado' });
             await this.Cronograma.destroy({ where: { premioId: id } });
             await this.Projeto.destroy({ where: { premioId: id } });
-
             await premio.destroy();
             res.json({ message: 'Prêmio excluído com sucesso' });
         } catch (error) {
@@ -142,38 +127,25 @@ export class PremiosController {
                     include: [
                         { model: this.Avaliacao, as: 'avaliacoes' },
                         { model: this.Usuario, as: 'Autor' },
-                        { model: this.Usuario, as: 'Coautores', through: { attributes: [] } }
-                    ]
-                }]
+                        { model: this.Usuario, as: 'Coautores', through: { attributes: [] } },
+                    ],
+                }],
             });
-
             const vencedores = premios.map(premio => {
-                const projetosAvaliados = premio.projetos.filter(projeto => projeto.status === 'avaliado');
-                if (projetosAvaliados.length === 0) return null;
-
-                const projetoVencedor = projetosAvaliados.reduce((vencedor, projeto) => {
-                    const mediaNota = projeto.avaliacoes.reduce((soma, av) => soma + av.nota, 0) / projeto.avaliacoes.length;
-                    if (!vencedor || mediaNota > vencedor.mediaNota) {
-                        return { ...projeto.dataValues, mediaNota };
-                    }
-                    return vencedor;
+                const projetosAvaliados = premio.projetos.filter(p => p.status === 'avaliado' && p.avaliacoes.length > 0);
+                if (!projetosAvaliados.length) return null;
+                const projetoVencedor = projetosAvaliados.reduce((vencedor, p) => {
+                    const mediaNota = p.avaliacoes.reduce((s, a) => s + a.nota, 0) / p.avaliacoes.length;
+                    return (!vencedor || mediaNota > vencedor.mediaNota) ? { ...p.dataValues, mediaNota } : vencedor;
                 }, null);
-
-                return {
+                return projetoVencedor ? {
                     premio: { id: premio.id, nome: premio.nome, ano: premio.ano },
-                    projetoVencedor: projetoVencedor ? {
-                        id: projetoVencedor.id,
-                        titulo: projetoVencedor.titulo,
-                        mediaNota: projetoVencedor.mediaNota
-                    } : null
-                };
-            }).filter(v => v && v.projetoVencedor);
-
+                    projetoVencedor: { id: projetoVencedor.id, titulo: projetoVencedor.titulo, mediaNota: projetoVencedor.mediaNota },
+                } : null;
+            }).filter(v => v);
             res.json(vencedores);
         } catch (error) {
             res.status(500).json({ error: 'Erro ao listar vencedores: ' + error.message });
         }
     }
 }
-
-export default PremiosController;

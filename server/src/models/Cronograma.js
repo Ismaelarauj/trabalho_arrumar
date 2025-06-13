@@ -30,3 +30,5 @@ export const defineCronograma = (sequelize) => {
 
     return Cronograma;
 };
+
+export default defineCronograma;

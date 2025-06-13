@@ -1,22 +1,26 @@
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = '505050';
-
-export const autenticar = (allowedRoles = []) => (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-        return res.status(401).json({ error: 'Token não fornecido' });
+export const autenticar = (allowedTypes = []) => (req, res, next) => {
+    console.log('Middleware autenticar: Verificando sessão...', req.session?.user);
+    if (!req.session?.user || typeof req.session.user !== 'object') {
+        console.log('Usuário não autenticado ou sessão inválida');
+        return res.status(401).json({ error: 'Não autenticado. Faça login.' });
     }
-
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        if (allowedRoles.length && !allowedRoles.includes(decoded.role)) {
-            return res.status(403).json({ error: 'Acesso não autorizado' });
-        }
-        req.usuario = decoded;
-        next();
-    } catch (error) {
-        console.error('Erro na autenticação:', error);
-        return res.status(401).json({ error: 'Token inválido' });
+    const userType = req.session.user.tipo;
+    const userId = req.session.user.id;
+    const userEmail = req.session.user.email;
+    if (!userType || !userId || !userEmail) {
+        console.log('Dados da sessão incompletos:', req.session.user);
+        return res.status(401).json({ error: 'Dados de autenticação inválidos.' });
     }
+    console.log(`Tipo do usuário: ${userType}, Tipos permitidos: ${allowedTypes}`);
+    if (allowedTypes.length && !allowedTypes.includes(userType)) {
+        console.log('Acesso não autorizado para o tipo do usuário');
+        return res.status(403).json({ error: 'Acesso não autorizado' });
+    }
+    req.usuario = {
+        id: userId,
+        email: userEmail,
+        tipo: userType,
+    };
+    console.log('Usuário autenticado com sucesso:', req.usuario);
+    next();
 };

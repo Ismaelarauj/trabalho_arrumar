@@ -7,13 +7,19 @@ export class AvaliacoesService {
 
     async getAll() {
         return await this.Avaliacao.findAll({
-            include: [{ model: this.Projeto, as: 'Projeto' }, { model: this.Usuario, as: 'Avaliador' }]
+            include: [
+                { model: this.Projeto, as: 'Projeto' },
+                { model: this.Usuario, as: 'Avaliador' },
+            ],
         });
     }
 
     async getById(id) {
         const avaliacao = await this.Avaliacao.findByPk(id, {
-            include: [{ model: this.Projeto, as: 'Projeto' }, { model: this.Usuario, as: 'Avaliador' }]
+            include: [
+                { model: this.Projeto, as: 'Projeto' },
+                { model: this.Usuario, as: 'Avaliador' },
+            ],
         });
         if (!avaliacao) throw new Error('Avaliação não encontrada');
         return avaliacao;

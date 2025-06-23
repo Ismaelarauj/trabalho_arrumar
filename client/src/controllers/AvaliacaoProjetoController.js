@@ -22,7 +22,7 @@ const AvaliacaoProjetoController = () => {
 
     useEffect(() => {
         if (auth.isAuthenticated === null) return; // Aguarda a verificação inicial
-        if (!auth.isAuthenticated || !isAvaliador) {
+        if (!auth.isAuthenticated && !isAvaliador) {
             if (window.location.pathname !== '/login') {
                 toast.error('Você precisa estar autenticado como avaliador para acessar esta página.');
                 navigate('/login', { replace: true });

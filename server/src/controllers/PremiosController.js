@@ -18,17 +18,25 @@ export class PremiosController {
 
     async listar(req, res) {
         try {
+            const usuarioLogado = req.usuario;
             const premios = await this.Premio.findAll({
                 include: [
                     { model: this.Cronograma, as: 'cronogramas' },
-                    { model: this.Projeto, as: 'projetos', include: [
+                    {
+                        model: this.Projeto,
+                        as: 'projetos',
+                        include: [
                             { model: this.Avaliacao, as: 'avaliacoes' },
                             { model: this.Usuario, as: 'Autor' },
                             { model: this.Usuario, as: 'Coautores', through: { attributes: [] } },
-                        ]},
+                        ],
+                    },
                 ],
             });
-            res.json(premios);
+            // Separar prêmios criados pelo usuário logado dos demais
+            const createdByUser = premios.filter(p => p.criadorId === usuarioLogado.id);
+            const createdByOthers = premios.filter(p => p.criadorId !== usuarioLogado.id);
+            res.json({ createdByUser, createdByOthers });
         } catch (error) {
             res.status(500).json({ error: 'Erro ao listar prêmios: ' + error.message });
         }
@@ -52,15 +60,21 @@ export class PremiosController {
     }
 
     async criar(req, res) {
+
         try {
-            if (req.usuario.role !== 'admin') {
+            if (req.usuario.tipo !== 'admin') {
                 return res.status(403).json({ error: 'Apenas administradores podem criar prêmios' });
             }
-            const { nome, ano, descricao, cronogramas } = req.body;
-            if (!nome || !ano || !descricao) {
-                return res.status(400).json({ error: 'Nome, ano e descrição são obrigatórios' });
+            const { nome, ano, descricao, cronogramas, criadorId } = req.body;
+            if (!nome || !ano || !descricao || !criadorId) {
+                return res.status(400).json({ error: 'Nome, ano, descrição e criadorId são obrigatórios' });
             }
-            const premio = await this.Premio.create({ nome, ano, descricao });
+            // Verificar se o criadorId corresponde a um administrador
+            const criador = await this.Usuario.findByPk(criadorId);
+            if (!criador || criador.tipo !== 'admin') {
+                return res.status(400).json({ error: 'Criador inválido ou não é administrador' });
+            }
+            const premio = await this.Premio.create({ nome, ano, descricao, criadorId });
             if (cronogramas && cronogramas.length > 0) {
                 await this.Cronograma.bulkCreate(cronogramas.map(c => ({ ...c, premioId: premio.id })));
             }
@@ -75,17 +89,22 @@ export class PremiosController {
 
     async atualizar(req, res) {
         try {
-            if (req.usuario.role !== 'admin') {
+            if (req.usuario.tipo !== 'admin') {
                 return res.status(403).json({ error: 'Apenas administradores podem atualizar prêmios' });
             }
             const { id } = req.params;
-            const { nome, ano, descricao, cronogramas } = req.body;
-            if (!nome || !ano || !descricao) {
-                return res.status(400).json({ error: 'Nome, ano e descrição são obrigatórios' });
+            const { nome, ano, descricao, cronogramas, criadorId } = req.body;
+            if (!nome || !ano || !descricao || !criadorId) {
+                return res.status(400).json({ error: 'Nome, ano, descrição e criadorId são obrigatórios' });
             }
             const premio = await this.Premio.findByPk(id);
             if (!premio) return res.status(404).json({ error: 'Prêmio não encontrado' });
-            await premio.update({ nome, ano, descricao });
+            // Verificar se o criadorId corresponde a um administrador
+            const criador = await this.Usuario.findByPk(criadorId);
+            if (!criador || criador.tipo !== 'admin') {
+                return res.status(400).json({ error: 'Criador inválido ou não é administrador' });
+            }
+            await premio.update({ nome, ano, descricao, criadorId });
             if (cronogramas) {
                 await this.Cronograma.destroy({ where: { premioId: id } });
                 if (cronogramas.length > 0) {
@@ -103,7 +122,7 @@ export class PremiosController {
 
     async excluir(req, res) {
         try {
-            if (req.usuario.role !== 'admin') {
+            if (req.usuario.tipo !== 'admin') {
                 return res.status(403).json({ error: 'Apenas administradores podem excluir prêmios' });
             }
             const { id } = req.params;

@@ -165,6 +165,13 @@ const startServer = async () => {
         });
 
         app.post('/api/usuarios', (req, res) => usuariosController.create(req, res));
+        app.post('/api/usuarios/recuperar-senha', (req, res) => {
+            console.log('Requisição de recuperação de senha:', req.body.email);
+            // Implementar lógica de recuperação (ex.: enviar email)
+            res.json({ message: 'Instruções enviadas para o email' });
+        });
+
+
         app.get('/api/usuarios', autenticar(['admin', 'autor', 'avaliador']), (req, res) => {
             console.log('Requisição GET /api/usuarios por:', req.session.user?.email);
             usuariosController.getAll(req, res);

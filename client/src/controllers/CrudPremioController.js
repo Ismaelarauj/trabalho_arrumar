@@ -18,6 +18,7 @@ const CrudPremioController = () => {
         nome: '',
         descricao: '',
         ano: '',
+        criadorId: user?.id || '', // Inicializa com user.id
         cronogramas: [{ dataInicio: '', etapa: '', dataFim: '' }]
     });
 
@@ -35,6 +36,7 @@ const CrudPremioController = () => {
     const fetchPremios = async () => {
         try {
             const response = await api.get('/premios');
+            console.log('Resposta do endpoint /premios:', JSON.stringify(response.data, null, 2));
             if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
                 setPremios(response.data); // Espera { createdByUser: [], createdByOthers: [] }
                 setError(null);
@@ -69,6 +71,7 @@ const CrudPremioController = () => {
                 nome: premio.nome,
                 descricao: premio.descricao,
                 ano: premio.ano.toString(),
+                criadorId: premio.criadorId || user.id, // Usa criadorId do prêmio ou user.id
                 cronogramas: premio.cronogramas?.length > 0
                     ? premio.cronogramas.map(c => ({
                         dataInicio: formatDate(c.dataInicio),
@@ -83,6 +86,7 @@ const CrudPremioController = () => {
                 nome: '',
                 descricao: '',
                 ano: '',
+                criadorId: user.id,
                 cronogramas: [{ dataInicio: '', etapa: '', dataFim: '' }]
             });
         }
@@ -158,14 +162,16 @@ const CrudPremioController = () => {
                 nome: formData.nome.trim(),
                 descricao: formData.descricao.trim(),
                 ano,
+                criadorId: formData.criadorId, // Inclui criadorId
                 cronogramas
             };
+            console.log('Enviando payload:', JSON.stringify(payload, null, 2));
 
             if (editId) {
                 await api.put(`/premios/${editId}`, payload);
                 toast.success('Prêmio atualizado com sucesso!');
             } else {
-                await api.post('/premios', { ...payload, criadorId: user.id }); // Adiciona criadorId
+                await api.post('/premios', payload);
                 toast.success('Prêmio criado com sucesso!');
             }
             fetchPremios();

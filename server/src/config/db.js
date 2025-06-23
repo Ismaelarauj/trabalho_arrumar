@@ -9,7 +9,7 @@ import { defineContato } from '../models/Contato.js';
 import { defineEndereco } from '../models/Endereco.js';
 import { defineAssociations } from '../models/associations.js';
 
-export const sequelize = new Sequelize('premios', 'root', 'Francandrade@6810', {
+export const sequelize = new Sequelize('premios', 'root', 'Aces1234*', {
     host: 'localhost',
     dialect: 'mysql',
     port: 3306,
@@ -51,7 +51,7 @@ export const connectDB = async () => {
             console.log('Senha hasheada:', hashedPassword);
             try {
                 console.log('Tentando criar administrador com dados:', {
-                    nome: 'Administrador',
+                    nome: 'Brenno Pereira Novais',
                     cpf: '00000000000',
                     dataNascimento: '1970-01-01',
                     tipo: 'admin',
@@ -59,7 +59,7 @@ export const connectDB = async () => {
                     senha: hashedPassword
                 });
                 const novoAdmin = await Usuario.create({
-                    nome: 'Administrador',
+                    nome: 'Brenno Pereira Novais',
                     cpf: '00000000000',
                     dataNascimento: '1970-01-01',
                     tipo: 'admin',
@@ -76,6 +76,84 @@ export const connectDB = async () => {
             console.log('Administrador já existe no banco de dados:', adminExistente.toJSON());
             adminId = adminExistente.id;
         }
+
+
+        // Criar avaliador fixo
+        console.log('Verificando avaliador existente...');
+        let avaliadorId = null;
+        const avaliadorExistente = await Usuario.findOne({ where: { email: 'avaliador@example.com' } });
+        console.log('Resultado da busca por avaliador:', avaliadorExistente ? 'Encontrado' : 'Não encontrado');
+        if (!avaliadorExistente) {
+            console.log('Nenhum avaliador encontrado. Criando avaliador...');
+            const hashedPassword = await bcrypt.hash('aval123', 10);
+            console.log('Senha do avaliador hasheada:', hashedPassword);
+            try {
+                console.log('Tentando criar avaliador com dados:', {
+                    nome: 'Ismael Pereira Araújo',
+                    cpf: '00000000001',
+                    dataNascimento: '1970-01-01',
+                    tipo: 'avaliador',
+                    email: 'avaliador@example.com',
+                    senha: hashedPassword
+                });
+                const novoAvaliador = await Usuario.create({
+                    nome: 'Ismael Pereira Araújo',
+                    cpf: '00000000001',
+                    dataNascimento: '1970-01-01',
+                    tipo: 'avaliador',
+                    email: 'avaliador@example.com',
+                    senha: hashedPassword
+                });
+                console.log('Administrador criado:', novoAvaliador.toJSON());
+                avaliadorId = novoAvaliador.id;
+            } catch (createError) {
+                console.error('Erro ao criar administrador:', createError);
+                throw createError; // Lançar erro para interrupção
+            }
+        } else {
+            console.log('Avaliador já existe no banco de dados:', avaliadorExistente.toJSON());
+            avaliadorId = avaliadorExistente.id;
+        }
+
+        // Criar auto fixo
+        console.log('Verificando avaliador existente...');
+        let autorId = null;
+        const autorExistente = await Usuario.findOne({ where: { email: 'autor@example.com' } });
+        console.log('Resultado da busca por autor:', avaliadorExistente ? 'Encontrado' : 'Não encontrado');
+        if (!autorExistente) {
+            console.log('Nenhum autor encontrado. Criando autor...');
+            const hashedPassword = await bcrypt.hash('autor123', 10);
+            console.log('Senha do autor hasheada:', hashedPassword);
+            try {
+                console.log('Tentando criar autor com dados:', {
+                    nome: 'Mariana Candida Lopes',
+                    cpf: '10000000001',
+                    dataNascimento: '1970-01-01',
+                    tipo: 'autor',
+                    email: 'autor@example.com',
+                    senha: hashedPassword
+                });
+                const novoAutor = await Usuario.create({
+                    nome: 'Mariana Candida Lopes',
+                    cpf: '10000000001',
+                    dataNascimento: '1970-01-01',
+                    tipo: 'autor',
+                    email: 'autor@example.com',
+                    senha: hashedPassword
+                });
+                console.log('Autor criado:', novoAutor.toJSON());
+                autorId = novoAutor.id;
+            } catch (createError) {
+                console.error('Erro ao criar Autor', createError);
+                throw createError; // Lançar erro para interrupção
+            }
+        } else {
+            console.log('Autor já existe no banco de dados:', adminExistente.toJSON());
+            autorId = autorExistente.id;
+        }
+
+
+
 
         // Criar prêmios usando o adminId como criadorId
         console.log('Verificando prêmios existentes...');

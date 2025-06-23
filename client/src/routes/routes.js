@@ -19,6 +19,7 @@ import CrudUsuarioView from '../views/CrudUsuarioView';
 import EnvioProjetoView from '../views/EnvioProjetoView';
 import ListaProjetosView from '../views/ListaProjetosView';
 import ListaVencedoresView from '../views/ListaVencedoresView';
+import RecuperarSenhaView from '../views/RecuperarSenhaView';
 
 const AppRoutes = () => {
     return (
@@ -48,6 +49,13 @@ const AppRoutes = () => {
                 path="/cadastro"
                 element={<CrudUsuarioView {...CrudUsuarioController()} />}
             />
+
+            <Route
+                path="/recuperar-senha"
+                   element={<RecuperarSenhaView />}
+            />
+
+
             <Route
                 path="/projetos/enviar"
                 element={
@@ -56,20 +64,32 @@ const AppRoutes = () => {
                     </ProtectedRoute>
                 }
             />
-            <Route
+           {/* <Route
                 path="/projetos/avaliar"
                 element={
                     <ProtectedRoute allowedRoles={['avaliador']}>
                         <AvaliacaoProjetoView {...AvaliacaoProjetoController()} />
                     </ProtectedRoute>
                 }
-            />
+            />*/}
             <Route
+                path="/projetos/avaliar"
+                element={
+                        <AvaliacaoProjetoView {...AvaliacaoProjetoController()} />
+                }
+            />
+           {/* <Route
                 path="/projetos/avaliados"
                 element={
                     <ProtectedRoute allowedRoles={['avaliador']}>
                         <ListaProjetosView {...ListaProjetosController()} />
                     </ProtectedRoute>
+                }
+            />*/}
+             <Route
+                path="/projetos/avaliados"
+                element={
+                        <ListaProjetosView {...ListaProjetosController()} />
                 }
             />
             <Route

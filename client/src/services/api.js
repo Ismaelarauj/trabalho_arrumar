@@ -1,17 +1,23 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api',
-    withCredentials: true, // Permite enviar cookies automaticamente
+    baseURL: 'http://localhost:5000/api/',
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
 
-api.interceptors.request.use((config) => {
-    console.log('Requisição enviada:', config.url); // Log para depuração
-    return config;
-}, (error) => {
-    console.error('Erro na requisição:', error.message);
-    return Promise.reject(error);
-});
+api.interceptors.request.use(
+    (config) => {
+        console.log('Requisição enviada:', config.url);
+        return config;
+    },
+    (error) => {
+        console.error('Erro na requisição:', error.message);
+        return Promise.reject(error);
+    }
+);
 
 api.interceptors.response.use(
     (response) => {
@@ -20,7 +26,10 @@ api.interceptors.response.use(
     },
     (error) => {
         console.error('Erro na resposta:', error.response?.status, error.response?.data);
-        if (error.response && error.response.status === 401) {
+        const publicRoutes = ['/usuarios/login', '/usuarios'];
+        const isPublicPost = publicRoutes.includes(error.config?.url) && error.config?.method.toUpperCase() === 'POST';
+        if (error.response && error.response.status === 401 && !isPublicPost) {
+            console.log('Disparando authError para:', error.config?.url);
             window.dispatchEvent(new Event('authError'));
         }
         return Promise.reject(error);

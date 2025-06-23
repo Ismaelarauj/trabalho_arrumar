@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
     Container,
     Typography,
@@ -18,13 +18,13 @@ import {
     MenuItem
 } from '@mui/material';
 import { Add, Edit, Delete } from '@mui/icons-material';
+import AuthContext from '../context/AuthContext';
 
 const CrudUsuarioView = ({
                              usuarios,
                              open,
                              editId,
                              formData,
-                             token,
                              currentUserId,
                              isAdmin,
                              isCadastroRoute,
@@ -34,18 +34,20 @@ const CrudUsuarioView = ({
                              handleSubmit,
                              handleDelete
                          }) => {
+    const { auth } = useContext(AuthContext);
+
     return (
         <Container maxWidth="lg">
             <Box sx={{ mt: 4 }}>
                 <Typography variant="h4" gutterBottom>
-                    {isCadastroRoute ? 'Cadastro de Novo Usuário' : 'Gerenciamento de Usuários'}
+                    {isCadastroRoute ? 'Cadastro de Novo Usuário' : (isAdmin ? 'Gerenciamento de Usuários' : 'Meu Cadastro')}
                 </Typography>
                 {!isCadastroRoute && isAdmin && (
                     <Button variant="contained" color="primary" startIcon={<Add />} onClick={() => handleOpen()}>
                         Novo Usuário
                     </Button>
                 )}
-                {token && !isCadastroRoute && (
+                {auth.isAuthenticated && !isCadastroRoute && (
                     <Table sx={{ mt: 2 }}>
                         <TableHead>
                             <TableRow>

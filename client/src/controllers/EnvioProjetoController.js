@@ -1,3 +1,4 @@
+// src/controllers/EnvioProjetoController.js
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
@@ -25,40 +26,49 @@ const EnvioProjetoController = () => {
     const [autores, setAutores] = useState([]);
 
     useEffect(() => {
-        // Aguarda a verificação de autenticação
         if (auth.isAuthenticated === null) return;
-
-        // Se não estiver autenticado, deixa o ProtectedRoute lidar com o redirecionamento
-        if (!auth.isAuthenticated) {
+        if (!auth.isAuthenticated || !isAutor || !autorId) {
             return;
         }
 
-        // Se não for autor, deixa o ProtectedRoute lidar com o redirecionamento
-        if (!isAutor || !autorId) {
-            return;
-        }
-
-        fetchPremios();
-        fetchAutores();
+        fetchPremios()
+            .then(() => toast.success("Prêmios carregados com sucesso!"))
+            .catch(() => toast.error("Erro ao buscar prêmios"));
+        fetchAutores()
+            .then(() => toast.success("Autores carregados com sucesso!"))
+            .catch(() => toast.error("Erro ao buscar autores"));
     }, [auth.isAuthenticated, isAutor, autorId, navigate]);
 
     const fetchPremios = async () => {
         try {
             const response = await api.get('/premios');
-            setPremios(response.data);
+            console.log('Resposta do endpoint /premios:', JSON.stringify(response.data, null, 2));
+            const { createdByUser, createdByOthers } = response.data;
+            if (!Array.isArray(createdByUser) || !Array.isArray(createdByOthers)) {
+                throw new Error('Formato de dados inválido: createdByUser ou createdByOthers não são arrays');
+            }
+            const allPremios = [...createdByUser, ...createdByOthers];
+            console.log('Prêmios combinados:', JSON.stringify(allPremios, null, 2));
+            setPremios(allPremios);
         } catch (error) {
-            console.error('Erro ao buscar prêmios:', error);
-            toast.error('Erro ao buscar prêmios');
+            console.error('Erro ao buscar prêmios:', error.message);
+            toast.error('Erro ao buscar prêmios: ' + error.message);
+            setPremios([]);
         }
     };
 
     const fetchAutores = async () => {
         try {
             const response = await api.get('/usuarios');
-            setAutores(response.data.filter(usuario => usuario.tipo === 'autor' && usuario.id !== autorId));
+            const autoresFiltrados = response.data.filter(
+                usuario => usuario.tipo === 'autor' && usuario.id !== autorId
+            );
+            console.log('Autores filtrados:', JSON.stringify(autoresFiltrados, null, 2));
+            setAutores(autoresFiltrados);
         } catch (error) {
             console.error('Erro ao buscar autores:', error);
             toast.error('Erro ao buscar autores');
+            setAutores([]);
         }
     };
 
@@ -98,7 +108,9 @@ const EnvioProjetoController = () => {
         }
 
         try {
+            console.log('Enviando projeto:', JSON.stringify(formData, null, 2));
             const response = await api.post('/projetos/enviar', formData);
+            console.log('Resposta do envio:', JSON.stringify(response.data, null, 2));
             toast.success('Projeto enviado com sucesso!');
             setFormData({
                 premioId: '',
@@ -110,6 +122,7 @@ const EnvioProjetoController = () => {
                 coautores: []
             });
             setErrors({});
+            navigate('/my-projects');
         } catch (error) {
             console.error('Erro ao enviar projeto:', error.response?.data || error.message);
             if (error.response && error.response.data.errors) {

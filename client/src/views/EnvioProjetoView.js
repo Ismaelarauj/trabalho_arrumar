@@ -9,7 +9,7 @@ import {
     Select,
     InputLabel,
     FormControl,
-    FormHelperText
+    FormHelperText,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 
@@ -21,8 +21,10 @@ const EnvioProjetoView = ({
                               isAutor,
                               handleChange,
                               handleCoautoresChange,
-                              handleSubmit
+                              handleSubmit,
                           }) => {
+    console.log('Premios em EnvioProjetoView:', premios); // Debug
+
     return (
         <Container maxWidth="sm">
             <Box sx={{ mt: 4 }}>
@@ -39,11 +41,17 @@ const EnvioProjetoView = ({
                                 onChange={handleChange}
                                 required
                             >
-                                {premios.map((premio) => (
-                                    <MenuItem key={premio.id} value={premio.id}>
-                                        {premio.nome} ({premio.ano})
+                                {Array.isArray(premios) && premios.length > 0 ? (
+                                    premios.map((premio) => (
+                                        <MenuItem key={premio.id} value={premio.id}>
+                                            {premio.nome} ({premio.ano})
+                                        </MenuItem>
+                                    ))
+                                ) : (
+                                    <MenuItem value="" disabled>
+                                        Nenhum prêmio disponível
                                     </MenuItem>
-                                ))}
+                                )}
                             </Select>
                             {errors.premioId && <FormHelperText>{errors.premioId}</FormHelperText>}
                         </FormControl>
@@ -103,13 +111,21 @@ const EnvioProjetoView = ({
                                 value={formData.coautores}
                                 onChange={handleCoautoresChange}
                             >
-                                {autores.map((autor) => (
-                                    <MenuItem key={autor.id} value={autor.id}>
-                                        {autor.nome}
+                                {Array.isArray(autores) && autores.length > 0 ? (
+                                    autores.map((autor) => (
+                                        <MenuItem key={autor.id} value={autor.id}>
+                                            {autor.nome}
+                                        </MenuItem>
+                                    ))
+                                ) : (
+                                    <MenuItem value="" disabled>
+                                        Nenhum autor disponível
                                     </MenuItem>
-                                ))}
+                                )}
                             </Select>
-                            {errors.coautores && <FormHelperText error>{errors.coautores}</FormHelperText>}
+                            {errors.coautores && (
+                                <FormHelperText error>{errors.coautores}</FormHelperText>
+                            )}
                         </FormControl>
                         <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
                             Enviar Projeto
@@ -117,7 +133,8 @@ const EnvioProjetoView = ({
                     </form>
                 ) : (
                     <Typography variant="body1" color="error">
-                        Você não tem permissão para enviar projetos. Faça login como autor ou <Link to="/cadastro?tipo=autor">cadastre-se como autor</Link>.
+                        Você não tem permissão para enviar projetos. Faça login como autor ou{' '}
+                        <Link to="/cadastro?tipo=autor">cadastre-se como autor</Link>.
                     </Typography>
                 )}
             </Box>

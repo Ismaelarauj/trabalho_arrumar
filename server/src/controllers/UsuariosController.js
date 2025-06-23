@@ -11,6 +11,7 @@ export class UsuariosController {
             const { usuario } = await this.usuarioService.login({ email, senha });
             req.session.user = {
                 id: usuario.id,
+                nome: usuario.nome,
                 email: usuario.email,
                 tipo: usuario.tipo,
             };
@@ -29,7 +30,7 @@ export class UsuariosController {
                 return res.status(401).json({ error: 'Não autenticado' });
             }
             const usuario = await this.usuarioService.getById(req.session.user.id);
-            res.json({ user: { id: usuario.id, email: usuario.email, tipo: usuario.tipo } });
+            res.json({ user: { id: usuario.id, nome: usuario.nome, email: usuario.email, tipo: usuario.tipo } });
         } catch (error) {
             res.status(500).json({ error: 'Erro ao verificar autenticação: ' + error.message });
         }
@@ -38,11 +39,16 @@ export class UsuariosController {
     async getAll(req, res) {
         try {
             const usuarioLogado = req.session.user;
-            if (!['admin'].includes(usuarioLogado.tipo)) {
-                return res.status(403).json({ error: 'Apenas administradores podem listar usuários' });
+            if (!usuarioLogado) {
+                return res.status(401).json({ error: 'Não autenticado' });
             }
-            const usuarios = await this.usuarioService.getAll();
-            res.json(usuarios);
+            if (usuarioLogado.tipo === 'admin') {
+                const usuarios = await this.usuarioService.getAll();
+                return res.json(usuarios);
+            }
+            // Para autor ou avaliador, retornar apenas o próprio usuário
+            const usuario = await this.usuarioService.getById(usuarioLogado.id);
+            return res.json([usuario]); // Retorna como array para manter consistência com o frontend
         } catch (error) {
             res.status(500).json({ error: 'Erro ao listar usuários: ' + error.message });
         }
@@ -75,21 +81,43 @@ export class UsuariosController {
         }
     }
 
+    async recuperarSenha(req, res) {
+        try {
+            const { email } = req.body;
+            const usuario = await this.usuarioService.getByEmail(email);
+            if (!usuario) throw new Error('Usuário não encontrado');
+            // Implementar envio de email
+            res.json({ message: 'Instruções enviadas para o email' });
+        } catch (error) {
+            res.status(500).json({ error: 'Erro ao recuperar senha: ' + error.message });
+        }
+    }
+
     async update(req, res) {
         try {
-            const usuario = await this.usuarioService.getById(req.params.id);
+            const usuario = await this.usuarioService.getRawById(req.params.id); // Usa getRawById
             const usuarioLogado = req.session.user;
+            console.log('update: id=', req.params.id, 'usuarioLogado=', usuarioLogado, 'data=', req.body);
             if (usuarioLogado.tipo !== 'admin' && usuarioLogado.id !== usuario.id) {
-                const allowedFields = ['senha'];
+                const allowedFields = ['nome', 'dataNascimento', 'instituicao', 'especialidade', 'senha', 'telefone', 'rua', 'cidade', 'estado', 'cep'];
                 const data = {};
                 for (let key in req.body) if (allowedFields.includes(key)) data[key] = req.body[key];
-                if (Object.keys(data).length === 0) return res.status(403).json({ error: 'Apenas a senha pode ser editada' });
-                await usuario.update(data);
+                if (Object.keys(data).length === 0) return res.status(403).json({ error: 'Nenhum campo permitido para edição' });
+                await this.usuarioService.update(req.params.id, data);
             } else {
-                await usuario.update(req.body);
+                const errors = [];
+                if (!req.body.nome) errors.push({ field: 'nome', message: 'O nome é obrigatório' });
+                if (!req.body.cpf || !/^\d{11}$/.test(req.body.cpf)) errors.push({ field: 'cpf', message: 'O CPF deve ter 11 dígitos' });
+                if (!req.body.dataNascimento) errors.push({ field: 'dataNascimento', message: 'A data de nascimento é obrigatória' });
+                if (!req.body.tipo) errors.push({ field: 'tipo', message: 'O tipo é obrigatório' });
+                if (!req.body.email) errors.push({ field: 'email', message: 'O email é obrigatório' });
+                if (errors.length > 0) return res.status(400).json({ errors });
+                await this.usuarioService.update(req.params.id, req.body);
             }
-            res.json(await this.usuarioService.getById(req.params.id));
+            const updatedUser = await this.usuarioService.getById(req.params.id);
+            res.json(updatedUser);
         } catch (error) {
+            console.error('update error:', error.message);
             res.status(500).json({ error: 'Erro ao atualizar usuário: ' + error.message });
         }
     }

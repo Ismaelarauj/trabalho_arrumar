@@ -10,33 +10,39 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     const clearCookies = () => {
-        document.cookie.split(";").forEach((c) => {
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        document.cookie.split(';').forEach((c) => {
+            document.cookie = c
+                .replace(/^ +/, '')
+                .replace(/=.*/, `=;expires=${new Date().toUTCString()};path=/`);
         });
     };
 
     const checkAuth = async () => {
         try {
             console.log('Verificando autenticação...');
-            const response = await api.get('/usuarios/check-auth');
+            const response = await api.get('/usuarios/check-auth', { timeout: 5000 });
             console.log('Resposta checkAuth:', response.data);
-            setAuth({ isAuthenticated: true, user: response.data.user || {} });
+            const user = response.data.user || {};
+            if (!user.nome) {
+                console.warn('Usuário sem nome na resposta:', user);
+            }
+            setAuth({ isAuthenticated: true, user });
+            console.log('Auth atualizado:', { isAuthenticated: true, user });
         } catch (error) {
             console.error('Erro ao verificar autenticação:', error.response?.data || error.message);
             setAuth({ isAuthenticated: false, user: null });
-            if (error.response?.status === 401) {
+            console.log('Auth após erro:', { isAuthenticated: false, user: null });
+            if (error.response?.status === 401 && window.location.pathname !== '/login' && window.location.pathname !== '/cadastro') {
                 clearCookies();
-                if (window.location.pathname !== '/login' && window.location.pathname !== '/cadastro') {
-                    toast.error('Sessão expirada. Faça login novamente.');
-                    navigate('/login', { replace: true });
-                }
+                toast.error('Sessão expirada. Faça login novamente.');
+                navigate('/login', { replace: true });
             }
         }
     };
 
     useEffect(() => {
         checkAuth();
-    }, []); // Remover a condição auth.isAuthenticated === null para garantir execução inicial
+    }, []);
 
     const login = async (email, senha) => {
         try {
@@ -47,7 +53,12 @@ export const AuthProvider = ({ children }) => {
             if (!user || typeof user !== 'object') {
                 throw new Error('Resposta inválida do servidor');
             }
+            if (!user.nome) {
+                console.warn('Usuário sem nome na resposta:', user);
+            }
             setAuth({ isAuthenticated: true, user });
+            console.log('Auth após login:', { isAuthenticated: true, user });
+            navigate('/', { replace: true });
             return user;
         } catch (error) {
             console.error('Erro ao fazer login:', error.response?.data || error.message);

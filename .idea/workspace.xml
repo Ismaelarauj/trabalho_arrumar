@@ -5,61 +5,32 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6294380c-6e2f-4fbd-89f8-43f849625531" name="Changes" comment="sucesso">
-      <change afterPath="$PROJECT_DIR$/.env" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/components/LoginMenu.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/components/Navigation.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/components/ProtectedRoute.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/context/AuthContext.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/controllers/AvaliacaoProjetoController.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/controllers/CrudPremioController.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/controllers/CrudUsuarioController.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/controllers/EnvioProjetoController.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/controllers/ListaProjetosController.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/controllers/ListaVencedoresController.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/controllers/LoginController.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/routes/routes.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/views/AvaliacaoProjetoView.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/views/CrudPremioView.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/views/CrudUsuarioView.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/views/EnvioProjetoView.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/views/ListaProjetosView.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/views/ListaVencedoresView.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client/src/views/LoginView.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/src/dtos/ProjetoDTO.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/src/dtos/UsuarioDTO.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/df857ba5-3893-4032-bd0d-587ab4a193d2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/df857ba5-3893-4032-bd0d-587ab4a193d2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/trabalho_arrumar.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/client/src/views/RecuperarSenhaView.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/client/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/App.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/AvaliacaoProjeto.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/CrudPremio.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/CrudUsuario.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/EnvioProjeto.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/ListaProjetos.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/ListaVencedores.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/src/components/Login.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/components/Navigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/components/Navigation.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/context/AuthContext.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/context/AuthContext.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/controllers/AvaliacaoProjetoController.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/controllers/AvaliacaoProjetoController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/controllers/CrudPremioController.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/controllers/CrudPremioController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/controllers/CrudUsuarioController.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/controllers/CrudUsuarioController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/controllers/EnvioProjetoController.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/controllers/EnvioProjetoController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/routes/routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/routes/routes.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/src/services/api.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/services/api.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/views/CrudUsuarioView.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/views/CrudUsuarioView.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/src/views/EnvioProjetoView.js" beforeDir="false" afterPath="$PROJECT_DIR$/client/src/views/EnvioProjetoView.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/index.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/config/db.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/config/db.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/controllers/AvaliacoesController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/controllers/AvaliacoesController.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/controllers/PremiosController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/controllers/PremiosController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/controllers/ProjetosController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/controllers/ProjetosController.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/controllers/UsuariosController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/controllers/UsuariosController.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/controllers/VencedoresController.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/controllers/VencedoresController.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/src/dtos/ProjetoDTO.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/dtos/ProjetoDTO.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/middlewares/auth.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/middlewares/auth.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/models/Avaliacao.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/models/Avaliacao.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/models/Contato.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/models/Contato.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/models/Cronograma.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/models/Cronograma.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/models/Endereco.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/models/Endereco.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/models/Premio.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/models/Premio.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/models/Projeto.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/models/Projeto.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/models/Usuario.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/models/Usuario.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/services/AvaliacoesService.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/services/AvaliacoesService.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/services/PremiosService.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/services/PremiosService.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/services/ProjetosService.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/services/ProjetosService.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/src/services/UsuariosService.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/services/UsuariosService.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/services/VencedoresService.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/services/VencedoresService.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,6 +50,7 @@
   <component name="Git.Settings">
     <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -86,15 +58,12 @@
     &quot;assignee&quot;: &quot;Ismaelarauj&quot;
   }
 }</component>
-  <component name="GithubDefaultAccount">
-    <option name="defaultAccountId" value="9e42085e-478f-496e-9577-3d01141719b2" />
-  </component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/Ismaelarauj/trabalho_arrumar",
-    "accountId": "9e42085e-478f-496e-9577-3d01141719b2"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Ismaelarauj/trabalho_arrumar.git&quot;,
+    &quot;accountId&quot;: &quot;6d00e8f4-8456-4d1e-aec5-8efed3868b9e&quot;
   }
-}]]></component>
+}</component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -116,9 +85,10 @@
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;22.15.0&quot;,
-    &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;22.15.17&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/ismae/IdeaProjects/sistema-avaliacao-projetos&quot;,
+    &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;22.14.0&quot;,
+    &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;22.14.1&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/brenn/Downloads/exportador-problematico-generic&quot;,
     &quot;list.type.of.created.stylesheet&quot;: &quot;CSS&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -128,7 +98,7 @@
     &quot;npm.install:all.executor&quot;: &quot;Run&quot;,
     &quot;npm.start.executor&quot;: &quot;Run&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\ismae\\AppData\\Local\\Programs\\IntelliJ IDEA Ultimate\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\IntelliJ IDEA 2024.3.5\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
   &quot;keyToStringList&quot;: {
@@ -172,11 +142,12 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.23774.435" />
-        <option value="bundled-js-predefined-d6986cc7102b-f27c65a3e318-JavaScript-IU-251.23774.435" />
+        <option value="bundled-jdk-9823dce3aa75-a94e463ab2e7-intellij.indexing.shared.core-IU-243.26053.27" />
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-IU-243.26053.27" />
       </set>
     </attachedChunks>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="6294380c-6e2f-4fbd-89f8-43f849625531" name="Changes" comment="" />
@@ -214,6 +185,16 @@
       <workItem from="1749515636650" duration="8293000" />
       <workItem from="1749607174477" duration="11373000" />
       <workItem from="1749854960734" duration="2841000" />
+      <workItem from="1750120293759" duration="206000" />
+      <workItem from="1750123099272" duration="907000" />
+      <workItem from="1750197844420" duration="738000" />
+      <workItem from="1750285510157" duration="32000" />
+      <workItem from="1750367531735" duration="5605000" />
+      <workItem from="1750386371468" duration="613000" />
+      <workItem from="1750536752655" duration="6370000" />
+      <workItem from="1750543544056" duration="14112000" />
+      <workItem from="1750602270441" duration="12078000" />
+      <workItem from="1750626744467" duration="11561000" />
     </task>
     <task id="LOCAL-00001" summary="sucesso">
       <option name="closed" value="true" />

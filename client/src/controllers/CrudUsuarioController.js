@@ -33,37 +33,45 @@ const CrudUsuarioController = () => {
     });
 
     useEffect(() => {
-        if (auth.isAuthenticated === null) return;
-        if (!isCadastroRoute && !auth.isAuthenticated) {
+        console.log('CrudUsuarioController useEffect: isCadastroRoute=', isCadastroRoute, 'auth.isAuthenticated=', auth.isAuthenticated, 'isAdmin=', isAdmin);
+        if (auth.isAuthenticated === null) {
+            console.log('Aguardando autenticação...');
+            return; // Aguarda até que checkAuth complete
+        }
+        if (isCadastroRoute) {
+            if (!open) {
+                console.log('Abrindo formulário de cadastro');
+                setFormData({
+                    nome: '',
+                    cpf: '',
+                    dataNascimento: '',
+                    tipo: '',
+                    instituicao: '',
+                    especialidade: '',
+                    email: '',
+                    senha: '',
+                    telefone: '',
+                    rua: '',
+                    cidade: '',
+                    estado: '',
+                    cep: ''
+                });
+                setOpen(true);
+            }
+            return;
+        }
+        if (!auth.isAuthenticated) {
+            console.log('Redirecionando para /login: usuário não autenticado');
             navigate('/login', { replace: true });
             return;
         }
-        if (!isCadastroRoute) {
-            fetchUsuarios();
-        } else if (isCadastroRoute && !open) {
-            setFormData({
-                nome: '',
-                cpf: '',
-                dataNascimento: '',
-                tipo: '',
-                instituicao: '',
-                especialidade: '',
-                email: '',
-                senha: '',
-                telefone: '',
-                rua: '',
-                cidade: '',
-                estado: '',
-                cep: ''
-            });
-            setOpen(true);
-        }
+        fetchUsuarios();
     }, [auth.isAuthenticated, isCadastroRoute, navigate, open]);
 
     const fetchUsuarios = async () => {
         try {
             const response = await api.get('/usuarios');
-            console.log('Usuários recebidos:', response.data);
+            console.log('Usuários recebidos:', response.data, 'userType:', user?.tipo);
             setUsuarios(response.data);
         } catch (error) {
             console.error('Erro ao buscar usuários:', error);
@@ -72,6 +80,7 @@ const CrudUsuarioController = () => {
     };
 
     const handleOpen = (usuario = null) => {
+        console.log('handleOpen: usuario=', usuario);
         if (usuario) {
             setEditId(usuario.id);
             setFormData({
@@ -111,10 +120,8 @@ const CrudUsuarioController = () => {
     };
 
     const handleClose = () => {
+        console.log('handleClose: isCadastroRoute=', isCadastroRoute);
         setOpen(false);
-        if (isCadastroRoute && !auth.isAuthenticated) {
-            navigate('/login');
-        }
     };
 
     const handleChange = (e) => {
@@ -137,6 +144,7 @@ const CrudUsuarioController = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log('handleSubmit: formData=', formData);
         const validationErrors = validateForm();
         if (validationErrors.length > 0) {
             toast.error('Erro ao salvar usuário: ' + validationErrors.join(', '));
@@ -186,6 +194,7 @@ const CrudUsuarioController = () => {
     };
 
     const handleDelete = async (id) => {
+        console.log('handleDelete: id=', id);
         if (!auth.isAuthenticated || !isAdmin) {
             toast.error('Apenas administradores podem excluir usuários.');
             return;

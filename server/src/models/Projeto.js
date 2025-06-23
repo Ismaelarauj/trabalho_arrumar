@@ -1,19 +1,22 @@
+// server/models/Projeto.js
 import { DataTypes } from 'sequelize';
 
 export const defineProjeto = (sequelize) => {
     const Projeto = sequelize.define('Projeto', {
         id: {
             type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true
+            autoIncrement: true,
+            primaryKey: true
         },
         premioId: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
+            references: { model: 'Premios', key: 'id' }
         },
         autorId: {
             type: DataTypes.INTEGER,
-            allowNull: false
+            allowNull: false,
+            references: { model: 'Usuarios', key: 'id' }
         },
         titulo: {
             type: DataTypes.STRING,
@@ -28,22 +31,32 @@ export const defineProjeto = (sequelize) => {
             allowNull: false
         },
         dataEnvio: {
-            type: DataTypes.DATEONLY,
+            type: DataTypes.DATE,
             allowNull: false
         },
-        status: {
-            type: DataTypes.ENUM('pendente', 'avaliado', 'aprovado', 'rejeitado'),
-            defaultValue: 'pendente'
-        },
         arquivoPath: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        status: {
+            type: DataTypes.STRING,
+            defaultValue: 'pendente'
         }
     }, {
-        tableName: 'Projetos',
-        timestamps: false
+        tableName: 'Projetos'
     });
+
+    Projeto.associate = (models) => {
+        Projeto.belongsTo(models.Premio, { foreignKey: 'premioId', as: 'Premio' });
+        Projeto.belongsTo(models.Usuario, { foreignKey: 'autorId', as: 'Autor' });
+        Projeto.belongsToMany(models.Usuario, {
+            through: 'ProjetoCoautores',
+            as: 'Coautores',
+            foreignKey: 'projetoId',
+            otherKey: 'usuarioId'
+        });
+        Projeto.hasMany(models.Avaliacao, { foreignKey: 'projetoId', as: 'avaliacoes' });
+    };
 
     return Projeto;
 };
-
-export default defineProjeto;
